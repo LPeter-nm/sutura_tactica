@@ -1,0 +1,30 @@
+import { z } from 'zod'
+import { STATUS_VALUES } from '@/types/costura'
+
+// Este schema é usado em dois lugares: no formulário (pra avisar a
+// pessoa na hora que ela erra um campo) e na Server Action (pra
+// garantir que nada inválido chega ao banco, mesmo que alguém
+// tente chamar a função sem passar pelo formulário). É por isso
+// que ele mora num arquivo à parte, importável dos dois lados.
+export const costuraSchema = z.object({
+  eletricista_nome: z.string().trim().min(1, 'Informe o nome do eletricista'),
+  prefixo: z.string().trim().optional(),
+  lider_supervisor: z.string().trim().optional(),
+
+  // Fica como texto mesmo — é o que um <input> entrega. A conversão
+  // pra número só acontece depois, na hora de salvar no banco
+  // (veja app/(dashboard)/costuras/actions.ts). Vazio é permitido,
+  // já que o campo é opcional.
+  quantidade_pagamento: z
+    .string()
+    .optional()
+    .refine((v) => !v || !Number.isNaN(Number(v)), 'Informe um número válido')
+    .refine((v) => !v || Number(v) >= 0, 'Não pode ser negativo'),
+
+  tipo_fardamento: z.string().trim().min(1, 'Informe o tipo de fardamento'),
+  local_costura: z.string().trim().min(1, 'Informe o local de costura'),
+  prazo_entrega: z.string().min(1, 'Informe o prazo de entrega'),
+  status_entrega: z.enum(STATUS_VALUES),
+})
+
+export type CosturaFormValues = z.infer<typeof costuraSchema>
