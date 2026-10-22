@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Controle de Costuras
 
-## Getting Started
+Sistema interno de controle de costuras de fardamentos de eletricistas — da
+DPL Construções. Substitui o controle manual/planilha por um registro único,
+com histórico automático de cada mudança de status.
 
-First, run the development server:
+## Funcionalidades
+
+- Autenticação (usuários cadastrados manualmente, sem registro público)
+- Cadastro, edição e visualização de costuras, em páginas ou em cartões
+  flutuantes (modais), dependendo de como a pessoa navega até lá
+- Listagem com busca por eletricista/prefixo e filtro por status
+- Histórico automático de mudanças de status (quem mudou e quando)
+- Avisos visuais de sucesso/erro após as ações
+- Tema claro e escuro
+- Páginas próprias de erro 404 e 500
+
+## Tecnologias
+
+| Camada | Tecnologia |
+|---|---|
+| Frontend | Next.js 16 (App Router), React, TypeScript |
+| Estilização | Tailwind CSS v4 |
+| Formulários/validação | React Hook Form + Zod |
+| Backend/banco | Supabase (PostgreSQL, Auth, Row Level Security) |
+| Ícones | lucide-react |
+
+## Como rodar localmente
+
+### 1. Instalar dependências
+
+```bash
+npm install
+```
+
+### 2. Configurar variáveis de ambiente
+
+Copie `.env.local.example` para `.env.local` e preencha com os dados do seu
+projeto Supabase (**Project Settings → API**):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+Nunca use a `service_role key` aqui — apenas a `anon key`, que é segura para
+expor no navegador.
+
+### 3. Criar a estrutura do banco
+
+No **SQL Editor** do Supabase, rode, nesta ordem:
+
+1. `schema_controle_costuras.sql` — cria as tabelas, os gatilhos e as regras
+   de segurança (RLS)
+2. `supabase_correcao_trigger_historico.sql` — corrige a ordem dos gatilhos
+   de criação (histórico precisa ser gravado depois do insert, não antes)
+
+### 4. Criar os usuários do sistema
+
+Não existe tela de cadastro pública. Em **Authentication → Users**, no
+painel do Supabase, adicione manualmente cada pessoa que vai usar o sistema.
+
+### 5. Rodar o projeto
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse `http://localhost:3000` — a raiz redireciona para `/login` ou
+`/costuras`, dependendo de haver sessão ativa.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estrutura do projeto
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+├── login/              → autenticação
+└── (dashboard)/
+    └── costuras/
+        ├── page.tsx         → listagem
+        ├── novo/            → cadastro (página cheia, fallback)
+        ├── [id]/            → detalhes e edição (página cheia, fallback)
+        └── @modal/          → versões em cartão flutuante das rotas acima
+components/   → peças de UI reutilizadas entre as telas
+lib/          → clientes Supabase, validação (Zod) e acesso a dados
+types/        → tipos compartilhados do domínio "costura"
+```
 
-## Learn More
+## Segurança
 
-To learn more about Next.js, take a look at the following resources:
+- Row Level Security habilitado em todas as tabelas — só usuários
+  autenticados leem, criam ou atualizam registros
+- Nenhuma operação de exclusão exposta, preservando o histórico
+- Todo dado de formulário é validado no navegador **e** no servidor
+- Credenciais do banco ficam fora do código-fonte, em `.env.local`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentação completa
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A documentação técnica detalhada (requisitos, modelagem do banco, paleta de
+cores) está em `docs/documentacao_controle_costuras.pdf`.
