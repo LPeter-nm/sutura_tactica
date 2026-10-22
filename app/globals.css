@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* Diz ao Tailwind: trate como "dark:" qualquer elemento que esteja
+   dentro de (ou seja) algo com a classe .dark. É assim que ligamos
+   o tema escuro manualmente, por um botão — em vez de deixar o
+   navegador decidir sozinho pela preferência do sistema operacional. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Os valores "de verdade" das cores vivem aqui, em variáveis CSS
+   comuns — não dentro do @theme. A diferença importa: variáveis
+   comuns podem ser TROCADAS em tempo real (quando a classe .dark
+   aparece no <html>), enquanto o @theme sozinho só sabe gerar
+   classes fixas, calculadas uma vez, no build. */
+:root {
+  --surface: #fafafa; /* fundo da aplicação, tema claro */
+  --ink: #1a1a1a; /* texto principal, tema claro */
+  --card: #ffffff; /* fundo de cartões e tabelas */
+  --border: #e4e2df;
+
+  --primary: #c1272d; /* vermelho da máquina */
+  --primary-dark: #8e1d22;
+  --primary-light: #f6d9da;
+
+  --secondary: #1e4e8c; /* azul DPL */
+  --secondary-dark: #163a68;
+  --secondary-light: #dce8f7;
+}
+
+.dark {
+  --surface: #141414;
+  --ink: #f5f5f3;
+  --card: #1e1e1e;
+  --border: #2d2d2d;
+
+  --primary: #e2545b;
+  --primary-dark: #c1272d;
+  --primary-light: #3a1618;
+
+  --secondary: #4f85c9;
+  --secondary-dark: #1e4e8c;
+  --secondary-light: #16263d;
+}
+
+/* "@theme inline" gera as classes bg-primary, text-ink, etc., mas
+   apontando para as variáveis acima em vez de copiar o valor. Por
+   isso, quando a classe .dark aparece no <html>, as classes do
+   Tailwind mudam de cor sozinhas, sem precisar recalcular nada. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-card: var(--card);
+  --color-border: var(--border);
+
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-dark: var(--secondary-dark);
+  --color-secondary-light: var(--secondary-light);
+}
+
+body {
+  @apply bg-surface text-ink antialiased transition-colors duration-200;
+}
