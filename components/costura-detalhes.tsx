@@ -62,7 +62,7 @@ export function CosturaDetalhes({
                 )}
                 <StatusBadge status={item.status_novo} />
                 <span className="text-xs text-ink/50">
-                  {new Date(item.alterado_em).toLocaleString('pt-BR')}
+                  {new Date(item.alterado_em).toLocaleString('pt-BR', {timeZone: 'America/Sao_Paulo'})}
                 </span>
               </li>
             ))}

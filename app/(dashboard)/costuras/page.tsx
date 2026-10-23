@@ -111,7 +111,7 @@ export default async function PaginaCosturas({
                 <td className="px-4 py-3 text-ink/70">{costura.quantidade_pagamento?.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'})}</td>
                 <td className="px-4 py-3 text-ink/70">
                   {new Date(`${costura.prazo_entrega}T00:00:00`).toLocaleDateString(
-                    'pt-BR'
+                    'pt-BR', {timeZone: 'America/Sao_Paulo'}
                   )}
                 </td>
                 <td className="px-4 py-3">
