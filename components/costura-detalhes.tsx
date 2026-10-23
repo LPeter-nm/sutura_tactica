@@ -21,14 +21,14 @@ export function CosturaDetalhes({
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
         <Campo rotulo="Prefixo" valor={costura.prefixo} />
-        <Campo rotulo="Líder" valor={costura.lider_supervisor} />
+        <Campo rotulo="Líder/Supervisor" valor={costura.lider_supervisor} />
         <Campo rotulo="Tipo de fardamento" valor={costura.tipo_fardamento} />
         <Campo rotulo="Local de costura" valor={costura.local_costura} />
         <Campo
           rotulo="Prazo de entrega"
           valor={new Date(
             `${costura.prazo_entrega}T00:00:00`
-          ).toLocaleDateString('pt-BR')}
+          ).toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'})}
         />
         <Campo
           rotulo="Quantidade a pagar"
