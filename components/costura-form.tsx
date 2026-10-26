@@ -75,7 +75,7 @@ export function CosturaForm({
       </Campo>
 
       <div className="grid grid-cols-2 gap-4">
-        <Campo label="Líder" erro={errors.lider_supervisor?.message}>
+        <Campo label="Líder/Supervisor" erro={errors.lider_supervisor?.message}>
           <input {...register('lider_supervisor')} className={estiloInput} />
         </Campo>
       </div>
@@ -90,7 +90,7 @@ export function CosturaForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Campo label="Prazo de entrega" erro={errors.prazo_entrega?.message}>
+        <Campo label="Data Costura" erro={errors.prazo_entrega?.message}>
           <input type="date" {...register('prazo_entrega')} className={estiloInput} />
         </Campo>
         <Campo

@@ -27,7 +27,7 @@ export function CosturaDetalhes({
         <Campo rotulo="Tipo de fardamento" valor={costura.tipo_fardamento} />
         <Campo rotulo="Local de costura" valor={costura.local_costura} />
         <Campo
-          rotulo="Prazo de entrega"
+          rotulo="Data Costura"
           valor={new Date(`${costura.prazo_entrega}T00:00:00`).toLocaleDateString(
             'pt-BR',
             { timeZone: 'America/Fortaleza' }
