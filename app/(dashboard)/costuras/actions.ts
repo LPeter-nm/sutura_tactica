@@ -1,3 +1,4 @@
+// app/(dashboard)/costuras/actions.ts
 'use server'
 
 import { revalidatePath } from 'next/cache'
@@ -12,6 +13,18 @@ function paraNumeroOuNulo(valor?: string) {
   return Number(valor)
 }
 
+// A regra de negócio mora aqui, não no formulário: sem preço, não
+// existe status de pagamento (fica null). Com preço, usa o que foi
+// enviado — e se nada foi enviado ainda (ex: acabou de ganhar um
+// preço agora), começa como "pendente".
+function determinarStatusPagamento(
+  quantidade: number | null,
+  enviado?: string
+) {
+  if (quantidade === null) return null
+  return enviado === 'pago' ? 'pago' : 'pendente'
+}
+
 export async function criarCostura(valores: CosturaFormValues) {
   // O formulário já validou isso no navegador — mas o navegador é
   // controlado por quem está do outro lado da tela, não por nós.
@@ -23,10 +36,16 @@ export async function criarCostura(valores: CosturaFormValues) {
     return { erro: 'Dados inválidos. Confira os campos e tente novamente.' }
   }
 
+  const quantidade = paraNumeroOuNulo(dados.data.quantidade_pagamento)
+
   const supabase = await createClient()
   const { error } = await supabase.from('costuras').insert({
     ...dados.data,
-    quantidade_pagamento: paraNumeroOuNulo(dados.data.quantidade_pagamento),
+    quantidade_pagamento: quantidade,
+    status_pagamento: determinarStatusPagamento(
+      quantidade,
+      dados.data.status_pagamento
+    ),
   })
 
   if (error) {
@@ -46,12 +65,18 @@ export async function atualizarCostura(id: string, valores: CosturaFormValues) {
     return { erro: 'Dados inválidos. Confira os campos e tente novamente.' }
   }
 
+  const quantidade = paraNumeroOuNulo(dados.data.quantidade_pagamento)
+
   const supabase = await createClient()
   const { error } = await supabase
     .from('costuras')
     .update({
       ...dados.data,
-      quantidade_pagamento: paraNumeroOuNulo(dados.data.quantidade_pagamento),
+      quantidade_pagamento: quantidade,
+      status_pagamento: determinarStatusPagamento(
+        quantidade,
+        dados.data.status_pagamento
+      ),
     })
     .eq('id', id)
 

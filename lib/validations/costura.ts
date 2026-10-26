@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { STATUS_VALUES } from '@/types/costura'
+import { STATUS_VALUES, STATUS_VALUES_PAGAMENTO } from '@/types/costura'
 
 // Este schema é usado em dois lugares: no formulário (pra avisar a
 // pessoa na hora que ela erra um campo) e na Server Action (pra
@@ -25,6 +25,8 @@ export const costuraSchema = z.object({
   local_costura: z.string().trim().min(1, 'Informe o local de costura'),
   prazo_entrega: z.string().min(1, 'Informe o prazo de entrega'),
   status_entrega: z.enum(STATUS_VALUES),
+
+  status_pagamento: z.enum(STATUS_VALUES_PAGAMENTO).optional()
 })
 
 export type CosturaFormValues = z.infer<typeof costuraSchema>

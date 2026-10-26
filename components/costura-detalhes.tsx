@@ -1,5 +1,7 @@
+// components/costura-detalhes.tsx
+
 import Link from 'next/link'
-import { StatusBadge } from '@/components/status-badge'
+import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
 import type { Costura } from '@/types/costura'
 import type { LinhaHistorico } from '@/lib/costuras'
 
@@ -26,9 +28,10 @@ export function CosturaDetalhes({
         <Campo rotulo="Local de costura" valor={costura.local_costura} />
         <Campo
           rotulo="Prazo de entrega"
-          valor={new Date(
-            `${costura.prazo_entrega}T00:00:00`
-          ).toLocaleDateString('pt-BR', {timeZone: 'America/Sao_Paulo'})}
+          valor={new Date(`${costura.prazo_entrega}T00:00:00`).toLocaleDateString(
+            'pt-BR',
+            { timeZone: 'America/Fortaleza' }
+          )}
         />
         <Campo
           rotulo="Quantidade a pagar"
@@ -41,6 +44,17 @@ export function CosturaDetalhes({
               : '—'
           }
         />
+
+        {costura.quantidade_pagamento != null && (
+          <div>
+            <dt className="text-xs uppercase text-ink/50">
+              Status de pagamento
+            </dt>
+            <dd className="mt-1">
+              <StatusPagamentoBadge status={costura.status_pagamento} />
+            </dd>
+          </div>
+        )}
       </dl>
 
       {historico.length > 0 && (
@@ -62,7 +76,9 @@ export function CosturaDetalhes({
                 )}
                 <StatusBadge status={item.status_novo} />
                 <span className="text-xs text-ink/50">
-                  {new Date(item.alterado_em).toLocaleString('pt-BR', {timeZone: 'America/Sao_Paulo'})}
+                  {new Date(item.alterado_em).toLocaleString('pt-BR', {
+                    timeZone: 'America/Fortaleza',
+                  })}
                 </span>
               </li>
             ))}

@@ -1,7 +1,9 @@
+// app/(dashboard)/costuras/page.tsx
+
 import Link from 'next/link'
 import { Eye, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { StatusBadge } from '@/components/status-badge'
+import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
 import { AvisoSucesso } from '@/components/aviso-sucesso'
 import { STATUS_ENTREGA, type Costura } from '@/types/costura'
 
@@ -93,9 +95,9 @@ export default async function PaginaCosturas({
               <th className="px-4 py-3">Eletricista</th>
               <th className="px-4 py-3">Prefixo</th>
               <th className="px-4 py-3">Líder/Supervisor</th>
-              <th className="px-4 py-3">Valor</th>
-              <th className="px-4 py-3">Dt Costura</th>
+              <th className="px-4 py-3">Prazo</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Pagamento</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -108,14 +110,17 @@ export default async function PaginaCosturas({
                 <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.prefixo}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.lider_supervisor}</td>
-                <td className="px-4 py-3 text-ink/70">{costura.quantidade_pagamento?.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'})}</td>
                 <td className="px-4 py-3 text-ink/70">
                   {new Date(`${costura.prazo_entrega}T00:00:00`).toLocaleDateString(
-                    'pt-BR', {timeZone: 'America/Sao_Paulo'}
+                    'pt-BR',
+                    { timeZone: 'America/Fortaleza' }
                   )}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={costura.status_entrega} />
+                </td>
+                <td className="px-4 py-3">
+                  <StatusPagamentoBadge status={costura.status_pagamento} />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
@@ -140,7 +145,7 @@ export default async function PaginaCosturas({
 
             {costuras?.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-ink/50">
+                <td colSpan={8} className="px-4 py-6 text-center text-ink/50">
                   Nenhuma costura encontrada.
                 </td>
               </tr>

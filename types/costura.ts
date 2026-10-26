@@ -1,3 +1,5 @@
+// types/costura.ts
+
 // Lista única dos status possíveis — o "as const" faz o TypeScript
 // entender isso como quatro valores fixos, não como "qualquer texto".
 // É o espelho, no TypeScript, do enum que já existe lá no Postgres.
@@ -35,6 +37,25 @@ export const STATUS_ENTREGA: Record<
   },
 }
 
+// O mesmo princípio do status de entrega, mas para o pagamento —
+// um segundo eixo de status, independente do primeiro.
+export const STATUS_VALUES_PAGAMENTO = ['pendente', 'pago'] as const
+export type StatusPagamento = (typeof STATUS_VALUES_PAGAMENTO)[number]
+
+export const STATUS_PAGAMENTO: Record<
+  StatusPagamento,
+  { label: string; badge: string }
+> = {
+  pendente: {
+    label: 'Pendente de pagamento',
+    badge: 'bg-primary-light text-primary-dark',
+  },
+  pago: {
+    label: 'Pago',
+    badge: 'bg-secondary text-white',
+  },
+}
+
 // O formato de uma linha da tabela "costuras", exatamente como ela
 // volta do Supabase.
 export type Costura = {
@@ -42,12 +63,13 @@ export type Costura = {
   eletricista_nome: string
   prefixo: string
   lider_supervisor: string
-  supervisor: string
   quantidade_pagamento: number | null
   tipo_fardamento: string
   local_costura: string
   prazo_entrega: string
   status_entrega: StatusEntrega
+  // null quando não há preço definido — o campo "não se aplica"
+  status_pagamento: StatusPagamento | null
   created_at: string
   updated_at: string
 }

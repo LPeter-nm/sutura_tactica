@@ -1,3 +1,5 @@
+// components/costura-editar.tsx
+
 import { CosturaForm } from '@/components/costura-form'
 import { atualizarCostura } from '@/app/(dashboard)/costuras/actions'
 import type { Costura } from '@/types/costura'
@@ -23,6 +25,7 @@ export function CosturaEditar({ costura }: { costura: Costura }) {
           local_costura: costura.local_costura,
           prazo_entrega: costura.prazo_entrega,
           status_entrega: costura.status_entrega,
+          status_pagamento: costura.status_pagamento ?? 'pendente',
         }}
         aoSalvar={salvarComId}
         textoBotao="Salvar alterações"

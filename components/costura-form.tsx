@@ -1,10 +1,11 @@
+// components/costura-form.tsx
 'use client'
 
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { costuraSchema, type CosturaFormValues } from '@/lib/validations/costura'
-import { STATUS_ENTREGA } from '@/types/costura'
+import { STATUS_ENTREGA, STATUS_PAGAMENTO } from '@/types/costura'
 import { useToast } from '@/components/toast-provider'
 
 type CosturaFormProps = {
@@ -29,14 +30,21 @@ export function CosturaForm({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<CosturaFormValues>({
     resolver: zodResolver(costuraSchema),
     defaultValues: {
       status_entrega: 'pendente',
+      status_pagamento: 'pendente',
       ...valoresIniciais,
     },
   })
+
+  // Reage ao que a pessoa digita em tempo real — sem isso, o campo de
+  // status de pagamento teria que esperar um reenvio do formulário
+  // pra aparecer ou sumir.
+  const temPreco = !!watch('quantidade_pagamento')
 
   async function aoEnviar(valores: CosturaFormValues) {
     setEnviando(true)
@@ -99,6 +107,21 @@ export function CosturaForm({
           />
         </Campo>
       </div>
+
+      {temPreco && (
+        <Campo
+          label="Status de pagamento"
+          erro={errors.status_pagamento?.message}
+        >
+          <select {...register('status_pagamento')} className={estiloInput}>
+            {Object.entries(STATUS_PAGAMENTO).map(([valor, { label }]) => (
+              <option key={valor} value={valor}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </Campo>
+      )}
 
       <Campo label="Status de entrega" erro={errors.status_entrega?.message}>
         <select {...register('status_entrega')} className={estiloInput}>
