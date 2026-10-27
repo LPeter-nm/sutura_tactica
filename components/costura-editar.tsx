@@ -3,8 +3,15 @@
 import { CosturaForm } from '@/components/costura-form'
 import { atualizarCostura } from '@/app/(dashboard)/costuras/actions'
 import type { Costura } from '@/types/costura'
+import type { Fiscal } from '@/lib/fiscais'
 
-export function CosturaEditar({ costura }: { costura: Costura }) {
+export function CosturaEditar({
+  costura,
+  fiscais,
+}: {
+  costura: Costura
+  fiscais: Fiscal[]
+}) {
   // .bind(null, costura.id) prende o id a esta cópia da função — o
   // formulário recebe algo pronto pra chamar, sem precisar saber
   // que um id existe por trás disso.
@@ -16,6 +23,7 @@ export function CosturaEditar({ costura }: { costura: Costura }) {
         Editar costura — {costura.prefixo}
       </h1>
       <CosturaForm
+        fiscais={fiscais}
         valoresIniciais={{
           eletricista_nome: costura.eletricista_nome,
           prefixo: costura.prefixo ?? '',

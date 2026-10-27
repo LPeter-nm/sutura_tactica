@@ -1,22 +1,20 @@
 // components/costura-form.tsx
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { costuraSchema, type CosturaFormValues } from '@/lib/validations/costura'
 import { STATUS_ENTREGA, STATUS_PAGAMENTO } from '@/types/costura'
 import { useToast } from '@/components/toast-provider'
-import {
-  LIDERES,
-  SUPERVISORES,
-  COORDENADORES,
-  PESSOAS_PAGAMENTO,
-  EQUIPE_POR_LIDER,
-} from '@/lib/pessoas'
+import type { Fiscal } from '@/lib/fiscais'
 
 type CosturaFormProps = {
   valoresIniciais?: Partial<CosturaFormValues>
+  // Vem do banco agora (tabela "fiscais"), buscado pela página que
+  // usa este formulário — não mais de uma lista fixa no código. Por
+  // isso quem chama <CosturaForm> precisa passar essa prop.
+  fiscais: Fiscal[]
   // Esta prop recebe diretamente uma Server Action (de verdade, uma
   // função marcada "use server" lá no arquivo actions.ts — ou essa
   // mesma função já "pré-presa" a um id, via .bind(), no caso da
@@ -28,11 +26,47 @@ type CosturaFormProps = {
 
 export function CosturaForm({
   valoresIniciais,
+  fiscais,
   aoSalvar,
   textoBotao,
 }: CosturaFormProps) {
   const [enviando, setEnviando] = useState(false)
   const toast = useToast()
+
+  // Tudo que os selects precisam sai de UMA fonte só — a lista de
+  // fiscais que a página buscou no banco. useMemo evita recalcular
+  // essas quatro listas a cada letra digitada em outro campo do
+  // formulário, já que "fiscais" só muda quando a página é recarregada.
+  const { lideres, supervisores, coordenadores, pessoasPagamento, equipePorLider } =
+    useMemo(() => {
+      const supervisoresUnicos = new Set<string>()
+      const coordenadoresUnicos = new Set<string>()
+      const pessoasUnicas = new Set<string>()
+      const equipe: Record<string, { supervisor: string; coordenador: string }> = {}
+
+      for (const fiscal of fiscais) {
+        supervisoresUnicos.add(fiscal.supervisor)
+        coordenadoresUnicos.add(fiscal.coordenador)
+        pessoasUnicas.add(fiscal.nome)
+        pessoasUnicas.add(fiscal.supervisor)
+        pessoasUnicas.add(fiscal.coordenador)
+        equipe[fiscal.nome] = {
+          supervisor: fiscal.supervisor,
+          coordenador: fiscal.coordenador,
+        }
+      }
+
+      const ordenar = (valores: Set<string>) =>
+        Array.from(valores).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+
+      return {
+        lideres: ordenar(new Set(fiscais.map((f) => f.nome))),
+        supervisores: ordenar(supervisoresUnicos),
+        coordenadores: ordenar(coordenadoresUnicos),
+        pessoasPagamento: ordenar(pessoasUnicas),
+        equipePorLider: equipe,
+      }
+    }, [fiscais])
 
   const {
     register,
@@ -69,7 +103,7 @@ export function CosturaForm({
   const [pagoPorOutro, setPagoPorOutro] = useState(
     () =>
       !!valoresIniciais?.pago_por &&
-      !PESSOAS_PAGAMENTO.includes(valoresIniciais.pago_por)
+      !pessoasPagamento.includes(valoresIniciais.pago_por)
   )
 
   async function aoEnviar(valores: CosturaFormValues) {
@@ -111,28 +145,21 @@ export function CosturaForm({
               registroLider.onChange(evento)
 
               const nomeEscolhido = evento.target.value
-              const equipe = EQUIPE_POR_LIDER[nomeEscolhido]
-
               if (!nomeEscolhido) return
 
-              if (equipe?.supervisor && equipe.coordenador) {
+              // Cada fiscal, na tabela, tem exatamente um supervisor
+              // e um coordenador — então, diferente de antes, não
+              // existe mais caso ambíguo pra tratar aqui.
+              const equipe = equipePorLider[nomeEscolhido]
+              if (equipe) {
                 setValue('supervisor', equipe.supervisor)
                 setValue('coordenador', equipe.coordenador)
-              } else {
-                // Sem combinação única pra esse líder (ou líder
-                // desconhecido) — não arrisca preencher errado.
-                // Limpa e deixa a pessoa escolher na mão.
-                setValue('supervisor', '')
-                setValue('coordenador', '')
-                toast.mostrarErro(
-                  `${nomeEscolhido} tem mais de uma combinação de supervisor/coordenador registrada. Selecione manualmente.`
-                )
               }
             }}
             className={estiloInput}
           >
             <option value="">Selecione</option>
-            {LIDERES.map((nome) => (
+            {lideres.map((nome) => (
               <option key={nome} value={nome}>
                 {nome}
               </option>
@@ -142,7 +169,7 @@ export function CosturaForm({
         <Campo label="Supervisor" erro={errors.supervisor?.message}>
           <select {...register('supervisor')} className={estiloInput}>
             <option value="">Selecione</option>
-            {SUPERVISORES.map((nome) => (
+            {supervisores.map((nome) => (
               <option key={nome} value={nome}>
                 {nome}
               </option>
@@ -152,7 +179,7 @@ export function CosturaForm({
         <Campo label="Coordenador" erro={errors.coordenador?.message}>
           <select {...register('coordenador')} className={estiloInput}>
             <option value="">Selecione</option>
-            {COORDENADORES.map((nome) => (
+            {coordenadores.map((nome) => (
               <option key={nome} value={nome}>
                 {nome}
               </option>
@@ -224,7 +251,7 @@ export function CosturaForm({
                 className={estiloInput}
               >
                 <option value="">Selecione</option>
-                {PESSOAS_PAGAMENTO.map((nome) => (
+                {pessoasPagamento.map((nome) => (
                   <option key={nome} value={nome}>
                     {nome}
                   </option>
