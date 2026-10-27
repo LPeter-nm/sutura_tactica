@@ -5,7 +5,7 @@ import { Eye, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
 import { AvisoSucesso } from '@/components/aviso-sucesso'
-import { STATUS_ENTREGA, type Costura } from '@/types/costura'
+import { STATUS_ENTREGA, STATUS_PAGAMENTO, type Costura } from '@/types/costura'
 
 const MENSAGENS_SUCESSO: Record<string, string> = {
   criada: 'Costura cadastrada com sucesso.',
@@ -15,9 +15,14 @@ const MENSAGENS_SUCESSO: Record<string, string> = {
 export default async function PaginaCosturas({
   searchParams,
 }: {
-  searchParams: Promise<{ busca?: string; status?: string; sucesso?: string }>
+  searchParams: Promise<{
+    busca?: string
+    status?: string
+    statusPagamento?: string
+    sucesso?: string
+  }>
 }) {
-  const { busca, status, sucesso } = await searchParams
+  const { busca, status, statusPagamento, sucesso } = await searchParams
   const supabase = await createClient()
 
   // Monta a consulta aos poucos: começa com "todas as costuras,
@@ -37,6 +42,10 @@ export default async function PaginaCosturas({
 
   if (status) {
     consulta = consulta.eq('status_entrega', status)
+  }
+
+  if (statusPagamento) {
+    consulta = consulta.eq('status_pagamento', statusPagamento)
   }
 
   const { data: costuras } = await consulta.returns<Costura[]>()
@@ -93,6 +102,18 @@ export default async function PaginaCosturas({
         >
           <option value="">Todos os status</option>
           {Object.entries(STATUS_ENTREGA).map(([valor, { label }]) => (
+            <option key={valor} value={valor}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <select
+          name="statusPagamento"
+          defaultValue={statusPagamento ?? ''}
+          className="rounded-md border border-border bg-card px-3 py-2 text-sm text-ink"
+        >
+          <option value="">Todo pagamento</option>
+          {Object.entries(STATUS_PAGAMENTO).map(([valor, { label }]) => (
             <option key={valor} value={valor}>
               {label}
             </option>
