@@ -41,6 +41,24 @@ export default async function PaginaCosturas({
 
   const { data: costuras } = await consulta.returns<Costura[]>()
 
+  // Soma em cima dos próprios resultados já filtrados pela consulta
+  // acima — não é uma segunda busca no banco, só uma conta em cima
+  // do que já veio. Por isso ela "respeita" busca e status sozinha,
+  // sem precisar de nenhuma lógica extra de filtro aqui.
+  const resumoPagamento = (costuras ?? []).reduce(
+    (acumulado, c) => {
+      if (c.quantidade_pagamento == null) return acumulado
+      acumulado.total += c.quantidade_pagamento
+      if (c.status_pagamento === 'pago') {
+        acumulado.pago += c.quantidade_pagamento
+      } else {
+        acumulado.pendente += c.quantidade_pagamento
+      }
+      return acumulado
+    },
+    { total: 0, pago: 0, pendente: 0 }
+  )
+
   return (
     <div className="space-y-6">
       {sucesso && MENSAGENS_SUCESSO[sucesso] && (
@@ -87,6 +105,20 @@ export default async function PaginaCosturas({
           Filtrar
         </button>
       </form>
+
+      <div className="flex flex-wrap gap-3">
+        <CartaoResumo label="Total (filtro atual)" valor={resumoPagamento.total} />
+        <CartaoResumo
+          label="Recebido"
+          valor={resumoPagamento.pago}
+          cor="text-secondary"
+        />
+        <CartaoResumo
+          label="A receber"
+          valor={resumoPagamento.pendente}
+          cor="text-primary"
+        />
+      </div>
 
       <div className="overflow-x-auto rounded-md border border-border bg-card">
         <table className="w-full text-left text-sm">
@@ -153,6 +185,28 @@ export default async function PaginaCosturas({
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+// Só é usado nesta página, então fica aqui mesmo, sem virar um
+// arquivo em components/ — não vale a indireção para algo tão
+// pequeno e tão específico desta tela.
+function CartaoResumo({
+  label,
+  valor,
+  cor = 'text-ink',
+}: {
+  label: string
+  valor: number
+  cor?: string
+}) {
+  return (
+    <div className="rounded-md border border-border bg-card px-4 py-2">
+      <p className="text-xs uppercase text-ink/50">{label}</p>
+      <p className={`text-sm font-semibold ${cor}`}>
+        {valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+      </p>
     </div>
   )
 }
