@@ -54,12 +54,12 @@ export default async function PaginaEditarCostura({
         <CosturaForm
           valoresIniciais={{
             eletricista_nome: costura.eletricista_nome,
-            prefixo: costura.prefixo,
-            lider_supervisor: costura.lider_supervisor,
+            prefixo: costura.prefixo ?? '',
+            lider_supervisor: costura.lider_supervisor ?? '',
             quantidade_pagamento: costura.quantidade_pagamento?.toString() ?? '',
             tipo_fardamento: costura.tipo_fardamento,
             local_costura: costura.local_costura,
-            prazo_entrega: costura.prazo_entrega,
+            dt_costura: costura.dt_costura,
             status_entrega: costura.status_entrega,
           }}
           aoSalvar={salvarComId}
