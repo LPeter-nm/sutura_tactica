@@ -1,3 +1,5 @@
+// lib/validations/costura.ts
+
 import { z } from 'zod'
 import { STATUS_VALUES, STATUS_VALUES_PAGAMENTO } from '@/types/costura'
 
@@ -23,10 +25,14 @@ export const costuraSchema = z.object({
 
   tipo_fardamento: z.string().trim().min(1, 'Informe o tipo de fardamento'),
   local_costura: z.string().trim().min(1, 'Informe o local de costura'),
-  prazo_entrega: z.string().min(1, 'Informe o prazo de entrega'),
+  dt_costura: z.string().min(1, 'Informe a data da costura'),
   status_entrega: z.enum(STATUS_VALUES),
 
-  status_pagamento: z.enum(STATUS_VALUES_PAGAMENTO).optional()
+  // Os dois a seguir são opcionais de propósito: só fazem sentido
+  // quando existe um preço. A regra que decide isso de fato mora na
+  // Server Action, não aqui.
+  status_pagamento: z.enum(STATUS_VALUES_PAGAMENTO).optional(),
+  pago_por: z.string().trim().optional(),
 })
 
 export type CosturaFormValues = z.infer<typeof costuraSchema>

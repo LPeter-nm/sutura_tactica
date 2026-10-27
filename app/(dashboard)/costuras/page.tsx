@@ -27,7 +27,7 @@ export default async function PaginaCosturas({
   let consulta = supabase
     .from('costuras')
     .select('*')
-    .order('prazo_entrega', { ascending: true })
+    .order('dt_costura', { ascending: true })
 
   if (busca) {
     consulta = consulta.or(
@@ -130,6 +130,7 @@ export default async function PaginaCosturas({
               <th className="px-4 py-3">Dt Costura</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pagamento</th>
+              <th className="px-4 py-3">Pago por</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -140,10 +141,12 @@ export default async function PaginaCosturas({
                 className="border-b border-border last:border-0 hover:bg-surface"
               >
                 <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
-                <td className="px-4 py-3 text-ink/70">{costura.prefixo}</td>
-                <td className="px-4 py-3 text-ink/70">{costura.lider_supervisor}</td>
+                <td className="px-4 py-3 text-ink/70">{costura.prefixo ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">
-                  {new Date(`${costura.prazo_entrega}T00:00:00`).toLocaleDateString(
+                  {costura.lider_supervisor ?? '—'}
+                </td>
+                <td className="px-4 py-3 text-ink/70">
+                  {new Date(`${costura.dt_costura}T00:00:00`).toLocaleDateString(
                     'pt-BR',
                     { timeZone: 'America/Fortaleza' }
                   )}
@@ -153,6 +156,9 @@ export default async function PaginaCosturas({
                 </td>
                 <td className="px-4 py-3">
                   <StatusPagamentoBadge status={costura.status_pagamento} />
+                </td>
+                <td className="px-4 py-3 text-ink/70">
+                  {costura.pago_por ?? '—'}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">

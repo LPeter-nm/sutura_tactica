@@ -61,15 +61,18 @@ export const STATUS_PAGAMENTO: Record<
 export type Costura = {
   id: string
   eletricista_nome: string
-  prefixo: string
-  lider_supervisor: string
+  // null: prefixo e líder/supervisor são opcionais, viraram um campo
+  // só (lider_supervisor) depois de uma mudança feita direto no banco
+  prefixo: string | null
+  lider_supervisor: string | null
   quantidade_pagamento: number | null
   tipo_fardamento: string
   local_costura: string
-  prazo_entrega: string
+  dt_costura: string
   status_entrega: StatusEntrega
   // null quando não há preço definido — o campo "não se aplica"
   status_pagamento: StatusPagamento | null
+  pago_por: string | null
   created_at: string
   updated_at: string
 }

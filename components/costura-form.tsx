@@ -74,11 +74,9 @@ export function CosturaForm({
         />
       </Campo>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Campo label="Líder/Supervisor" erro={errors.lider_supervisor?.message}>
-          <input {...register('lider_supervisor')} className={estiloInput} />
-        </Campo>
-      </div>
+      <Campo label="Líder/Supervisor" erro={errors.lider_supervisor?.message}>
+        <input {...register('lider_supervisor')} className={estiloInput} />
+      </Campo>
 
       <div className="grid grid-cols-2 gap-4">
         <Campo label="Tipo de fardamento" erro={errors.tipo_fardamento?.message}>
@@ -90,8 +88,8 @@ export function CosturaForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Campo label="Data Costura" erro={errors.prazo_entrega?.message}>
-          <input type="date" {...register('prazo_entrega')} className={estiloInput} />
+        <Campo label="Dt Costura" erro={errors.dt_costura?.message}>
+          <input type="date" {...register('dt_costura')} className={estiloInput} />
         </Campo>
         <Campo
           label="Quantidade a pagar (opcional)"
@@ -109,18 +107,23 @@ export function CosturaForm({
       </div>
 
       {temPreco && (
-        <Campo
-          label="Status de pagamento"
-          erro={errors.status_pagamento?.message}
-        >
-          <select {...register('status_pagamento')} className={estiloInput}>
-            {Object.entries(STATUS_PAGAMENTO).map(([valor, { label }]) => (
-              <option key={valor} value={valor}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </Campo>
+        <div className="grid grid-cols-2 gap-4">
+          <Campo
+            label="Status de pagamento"
+            erro={errors.status_pagamento?.message}
+          >
+            <select {...register('status_pagamento')} className={estiloInput}>
+              {Object.entries(STATUS_PAGAMENTO).map(([valor, { label }]) => (
+                <option key={valor} value={valor}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Campo>
+          <Campo label="Pago por" erro={errors.pago_por?.message}>
+            <input {...register('pago_por')} className={estiloInput} />
+          </Campo>
+        </div>
       )}
 
       <Campo label="Status de entrega" erro={errors.status_entrega?.message}>

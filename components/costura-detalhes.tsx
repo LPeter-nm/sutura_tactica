@@ -22,13 +22,16 @@ export function CosturaDetalhes({
       </div>
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
-        <Campo rotulo="Prefixo" valor={costura.prefixo} />
-        <Campo rotulo="Líder/Supervisor" valor={costura.lider_supervisor} />
+        <Campo rotulo="Prefixo" valor={costura.prefixo ?? '—'} />
+        <Campo
+          rotulo="Líder/Supervisor"
+          valor={costura.lider_supervisor ?? '—'}
+        />
         <Campo rotulo="Tipo de fardamento" valor={costura.tipo_fardamento} />
         <Campo rotulo="Local de costura" valor={costura.local_costura} />
         <Campo
-          rotulo="Data Costura"
-          valor={new Date(`${costura.prazo_entrega}T00:00:00`).toLocaleDateString(
+          rotulo="Dt Costura"
+          valor={new Date(`${costura.dt_costura}T00:00:00`).toLocaleDateString(
             'pt-BR',
             { timeZone: 'America/Fortaleza' }
           )}
@@ -54,6 +57,10 @@ export function CosturaDetalhes({
               <StatusPagamentoBadge status={costura.status_pagamento} />
             </dd>
           </div>
+        )}
+
+        {costura.quantidade_pagamento != null && (
+          <Campo rotulo="Pago por" valor={costura.pago_por ?? '—'} />
         )}
       </dl>
 

@@ -25,6 +25,13 @@ function determinarStatusPagamento(
   return enviado === 'pago' ? 'pago' : 'pendente'
 }
 
+// Mesma lógica: sem preço, "pago por" não existe — vira null, nunca
+// uma string vazia perdida no banco.
+function determinarPagoPor(quantidade: number | null, enviado?: string) {
+  if (quantidade === null) return null
+  return enviado?.trim() ? enviado.trim() : null
+}
+
 export async function criarCostura(valores: CosturaFormValues) {
   // O formulário já validou isso no navegador — mas o navegador é
   // controlado por quem está do outro lado da tela, não por nós.
@@ -46,6 +53,7 @@ export async function criarCostura(valores: CosturaFormValues) {
       quantidade,
       dados.data.status_pagamento
     ),
+    pago_por: determinarPagoPor(quantidade, dados.data.pago_por),
   })
 
   if (error) {
@@ -77,6 +85,7 @@ export async function atualizarCostura(id: string, valores: CosturaFormValues) {
         quantidade,
         dados.data.status_pagamento
       ),
+      pago_por: determinarPagoPor(quantidade, dados.data.pago_por),
     })
     .eq('id', id)
 
