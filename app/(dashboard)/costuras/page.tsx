@@ -354,12 +354,11 @@ export default async function PaginaCosturas({
               <th className="px-4 py-3">Eletricista</th>
               <th className="px-4 py-3">Prefixo</th>
               <th className="px-4 py-3">Líder</th>
-              <th className="px-4 py-3">Supervisor</th>
-              <th className="px-4 py-3">Coordenador</th>
-              <th className="px-4 py-3">Dt Costura</th>
+              <th className="px-4 py-3">Dt Recebimento</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pagamento</th>
               <th className="px-4 py-3">Pago por</th>
+              <th className="px-4 py-3">Valor</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -373,12 +372,6 @@ export default async function PaginaCosturas({
                 <td className="px-4 py-3 text-ink/70">{costura.prefixo ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.lider ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">
-                  {costura.supervisor ?? '—'}
-                </td>
-                <td className="px-4 py-3 text-ink/70">
-                  {costura.coordenador ?? '—'}
-                </td>
-                <td className="px-4 py-3 text-ink/70">
                   {formatarDataBR(costura.dt_costura)}
                 </td>
                 <td className="px-4 py-3">
@@ -389,6 +382,9 @@ export default async function PaginaCosturas({
                 </td>
                 <td className="px-4 py-3 text-ink/70">
                   {costura.pago_por ?? '—'}
+                </td>
+                <td className="px-4 py-3 text-ink/70">
+                  {costura.quantidade_pagamento?.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'}) ?? '—'}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">

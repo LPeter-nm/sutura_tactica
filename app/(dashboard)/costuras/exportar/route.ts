@@ -25,27 +25,59 @@ export async function GET(request: NextRequest) {
 
   // Exatamente a mesma lógica de filtro da listagem — é assim que a
   // exportação sempre bate com o que a pessoa está vendo na tela.
-  let consulta = supabase
-    .from('costuras')
-    .select('*')
-    .order('dt_costura', { ascending: true })
+  // Vira uma FUNÇÃO (não uma consulta pronta) porque vamos precisar
+  // montá-la de novo a cada página, só trocando o "range" — o
+  // Supabase não permite reaproveitar a mesma consulta já disparada.
+  function construirConsulta() {
+    let consulta = supabase
+      .from('costuras')
+      .select('*')
+      .order('dt_costura', { ascending: true })
 
-  if (busca) {
-    consulta = consulta.or(
-      `eletricista_nome.ilike.%${busca}%,prefixo.ilike.%${busca}%`
-    )
-  }
-  if (status) consulta = consulta.eq('status_entrega', status)
-  if (statusPagamento) consulta = consulta.eq('status_pagamento', statusPagamento)
-  if (dataDe) consulta = consulta.gte('dt_costura', dataDe)
-  if (dataAte) consulta = consulta.lte('dt_costura', dataAte)
-  if (filtroLider) consulta = consulta.eq('lider', filtroLider)
-  if (filtroSupervisor) consulta = consulta.eq('supervisor', filtroSupervisor)
-  if (filtroCoordenador) {
-    consulta = consulta.eq('coordenador', filtroCoordenador)
+    if (busca) {
+      consulta = consulta.or(
+        `eletricista_nome.ilike.%${busca}%,prefixo.ilike.%${busca}%`
+      )
+    }
+    if (status) consulta = consulta.eq('status_entrega', status)
+    if (statusPagamento) {
+      consulta = consulta.eq('status_pagamento', statusPagamento)
+    }
+    if (dataDe) consulta = consulta.gte('dt_costura', dataDe)
+    if (dataAte) consulta = consulta.lte('dt_costura', dataAte)
+    if (filtroLider) consulta = consulta.eq('lider', filtroLider)
+    if (filtroSupervisor) consulta = consulta.eq('supervisor', filtroSupervisor)
+    if (filtroCoordenador) {
+      consulta = consulta.eq('coordenador', filtroCoordenador)
+    }
+
+    return consulta
   }
 
-  const { data: costuras } = await consulta.returns<Costura[]>()
+  // O Supabase devolve, por padrão, no máximo 1000 linhas por
+  // consulta — mesmo que existam mais batendo com o filtro, e sem
+  // avisar que parou ali. Pra exportação nunca vir cortada, buscamos
+  // em "páginas" de 1000, uma atrás da outra, até uma página voltar
+  // com menos de 1000 — sinal de que já pegamos tudo.
+  const TAMANHO_PAGINA = 1000
+  const costuras: Costura[] = []
+  let pagina = 0
+
+  while (true) {
+    const inicio = pagina * TAMANHO_PAGINA
+    const fim = inicio + TAMANHO_PAGINA - 1
+
+    const { data } = await construirConsulta()
+      .range(inicio, fim)
+      .returns<Costura[]>()
+
+    if (!data || data.length === 0) break
+
+    costuras.push(...data)
+
+    if (data.length < TAMANHO_PAGINA) break
+    pagina++
+  }
 
   const livro = new ExcelJS.Workbook()
   const planilha = livro.addWorksheet('Costuras')
@@ -68,7 +100,7 @@ export async function GET(request: NextRequest) {
     { header: 'Pago por', key: 'pagoPor', width: 18 },
   ]
 
-  for (const c of costuras ?? []) {
+  for (const c of costuras) {
     planilha.addRow({
       eletricista: c.eletricista_nome,
       prefixo: c.prefixo ?? '',
