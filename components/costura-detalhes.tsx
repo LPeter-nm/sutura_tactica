@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
 import type { Costura } from '@/types/costura'
 import type { LinhaHistorico } from '@/lib/costuras'
+import { formatarDataBR } from '@/lib/datas'
 
 export function CosturaDetalhes({
   costura,
@@ -23,19 +24,12 @@ export function CosturaDetalhes({
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
         <Campo rotulo="Prefixo" valor={costura.prefixo ?? '—'} />
-        <Campo
-          rotulo="Líder/Supervisor"
-          valor={costura.lider_supervisor ?? '—'}
-        />
+        <Campo rotulo="Líder" valor={costura.lider ?? '—'} />
+        <Campo rotulo="Supervisor" valor={costura.supervisor ?? '—'} />
+        <Campo rotulo="Coordenador" valor={costura.coordenador ?? '—'} />
         <Campo rotulo="Tipo de fardamento" valor={costura.tipo_fardamento} />
         <Campo rotulo="Local de costura" valor={costura.local_costura} />
-        <Campo
-          rotulo="Dt Costura"
-          valor={new Date(`${costura.dt_costura}T00:00:00`).toLocaleDateString(
-            'pt-BR',
-            { timeZone: 'America/Fortaleza' }
-          )}
-        />
+        <Campo rotulo="Dt Costura" valor={formatarDataBR(costura.dt_costura)} />
         <Campo
           rotulo="Quantidade a pagar"
           valor={

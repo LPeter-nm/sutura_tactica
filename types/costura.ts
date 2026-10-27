@@ -61,10 +61,11 @@ export const STATUS_PAGAMENTO: Record<
 export type Costura = {
   id: string
   eletricista_nome: string
-  // null: prefixo e líder/supervisor são opcionais, viraram um campo
-  // só (lider_supervisor) depois de uma mudança feita direto no banco
+  // null: todos os três são opcionais
   prefixo: string | null
-  lider_supervisor: string | null
+  lider: string | null
+  supervisor: string | null
+  coordenador: string | null
   quantidade_pagamento: number | null
   tipo_fardamento: string
   local_costura: string

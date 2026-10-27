@@ -19,7 +19,9 @@ export function CosturaEditar({ costura }: { costura: Costura }) {
         valoresIniciais={{
           eletricista_nome: costura.eletricista_nome,
           prefixo: costura.prefixo ?? '',
-          lider_supervisor: costura.lider_supervisor ?? '',
+          lider: costura.lider ?? '',
+          supervisor: costura.supervisor ?? '',
+          coordenador: costura.coordenador ?? '',
           quantidade_pagamento: costura.quantidade_pagamento?.toString() ?? '',
           tipo_fardamento: costura.tipo_fardamento,
           local_costura: costura.local_costura,

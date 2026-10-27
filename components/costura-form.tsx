@@ -7,6 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { costuraSchema, type CosturaFormValues } from '@/lib/validations/costura'
 import { STATUS_ENTREGA, STATUS_PAGAMENTO } from '@/types/costura'
 import { useToast } from '@/components/toast-provider'
+import {
+  LIDERES,
+  SUPERVISORES,
+  COORDENADORES,
+  PESSOAS_PAGAMENTO,
+  EQUIPE_POR_LIDER,
+} from '@/lib/pessoas'
 
 type CosturaFormProps = {
   valoresIniciais?: Partial<CosturaFormValues>
@@ -31,6 +38,7 @@ export function CosturaForm({
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CosturaFormValues>({
     resolver: zodResolver(costuraSchema),
@@ -45,6 +53,24 @@ export function CosturaForm({
   // status de pagamento teria que esperar um reenvio do formulário
   // pra aparecer ou sumir.
   const temPreco = !!watch('quantidade_pagamento')
+
+  // Guardamos o retorno de register('lider') numa variável, em vez
+  // de espalhar {...register('lider')} direto no JSX, porque
+  // precisamos do onChange original dele — pra chamar a mão, dentro
+  // do NOSSO onChange, que faz o preenchimento automático de
+  // supervisor/coordenador logo abaixo.
+  const registroLider = register('lider')
+
+  // "Pago por" é um select, mas com uma porta de saída: se o nome
+  // não estiver na lista conhecida, a pessoa escolhe "Outra
+  // pessoa..." e um campo de texto comum aparece no lugar. Começa já
+  // em modo "outro" se o valor existente (numa edição) não bater com
+  // nenhum nome da lista — assim ninguém perde um valor já salvo.
+  const [pagoPorOutro, setPagoPorOutro] = useState(
+    () =>
+      !!valoresIniciais?.pago_por &&
+      !PESSOAS_PAGAMENTO.includes(valoresIniciais.pago_por)
+  )
 
   async function aoEnviar(valores: CosturaFormValues) {
     setEnviando(true)
@@ -74,9 +100,66 @@ export function CosturaForm({
         />
       </Campo>
 
-      <Campo label="Líder/Supervisor" erro={errors.lider_supervisor?.message}>
-        <input {...register('lider_supervisor')} className={estiloInput} />
-      </Campo>
+      <div className="grid grid-cols-3 gap-4">
+        <Campo label="Líder" erro={errors.lider?.message}>
+          <select
+            {...registroLider}
+            onChange={(evento) => {
+              // Mantém o próprio formulário sabendo do novo valor —
+              // sem isso, o react-hook-form nunca ficaria sabendo que
+              // o campo mudou.
+              registroLider.onChange(evento)
+
+              const nomeEscolhido = evento.target.value
+              const equipe = EQUIPE_POR_LIDER[nomeEscolhido]
+
+              if (!nomeEscolhido) return
+
+              if (equipe?.supervisor && equipe.coordenador) {
+                setValue('supervisor', equipe.supervisor)
+                setValue('coordenador', equipe.coordenador)
+              } else {
+                // Sem combinação única pra esse líder (ou líder
+                // desconhecido) — não arrisca preencher errado.
+                // Limpa e deixa a pessoa escolher na mão.
+                setValue('supervisor', '')
+                setValue('coordenador', '')
+                toast.mostrarErro(
+                  `${nomeEscolhido} tem mais de uma combinação de supervisor/coordenador registrada. Selecione manualmente.`
+                )
+              }
+            }}
+            className={estiloInput}
+          >
+            <option value="">Selecione</option>
+            {LIDERES.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </Campo>
+        <Campo label="Supervisor" erro={errors.supervisor?.message}>
+          <select {...register('supervisor')} className={estiloInput}>
+            <option value="">Selecione</option>
+            {SUPERVISORES.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </Campo>
+        <Campo label="Coordenador" erro={errors.coordenador?.message}>
+          <select {...register('coordenador')} className={estiloInput}>
+            <option value="">Selecione</option>
+            {COORDENADORES.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </Campo>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Campo label="Tipo de fardamento" erro={errors.tipo_fardamento?.message}>
@@ -121,7 +204,34 @@ export function CosturaForm({
             </select>
           </Campo>
           <Campo label="Pago por" erro={errors.pago_por?.message}>
-            <input {...register('pago_por')} className={estiloInput} />
+            {pagoPorOutro ? (
+              <input
+                {...register('pago_por')}
+                placeholder="Digite o nome"
+                className={estiloInput}
+              />
+            ) : (
+              <select
+                value={watch('pago_por') ?? ''}
+                onChange={(evento) => {
+                  if (evento.target.value === '__outro__') {
+                    setPagoPorOutro(true)
+                    setValue('pago_por', '')
+                  } else {
+                    setValue('pago_por', evento.target.value)
+                  }
+                }}
+                className={estiloInput}
+              >
+                <option value="">Selecione</option>
+                {PESSOAS_PAGAMENTO.map((nome) => (
+                  <option key={nome} value={nome}>
+                    {nome}
+                  </option>
+                ))}
+                <option value="__outro__">Outra pessoa...</option>
+              </select>
+            )}
           </Campo>
         </div>
       )}

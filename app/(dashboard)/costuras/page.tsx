@@ -3,9 +3,16 @@
 import Link from 'next/link'
 import { Eye, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { buscarOpcoesDeFiltro } from '@/lib/costuras'
 import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
 import { AvisoSucesso } from '@/components/aviso-sucesso'
 import { STATUS_ENTREGA, STATUS_PAGAMENTO, type Costura } from '@/types/costura'
+import {
+  formatarDataBR,
+  periodoHoje,
+  periodoEstaSemana,
+  periodoEsteMes,
+} from '@/lib/datas'
 
 const MENSAGENS_SUCESSO: Record<string, string> = {
   criada: 'Costura cadastrada com sucesso.',
@@ -19,10 +26,25 @@ export default async function PaginaCosturas({
     busca?: string
     status?: string
     statusPagamento?: string
+    dataDe?: string
+    dataAte?: string
+    filtroLider?: string
+    filtroSupervisor?: string
+    filtroCoordenador?: string
     sucesso?: string
   }>
 }) {
-  const { busca, status, statusPagamento, sucesso } = await searchParams
+  const {
+    busca,
+    status,
+    statusPagamento,
+    dataDe,
+    dataAte,
+    filtroLider,
+    filtroSupervisor,
+    filtroCoordenador,
+    sucesso,
+  } = await searchParams
   const supabase = await createClient()
 
   // Monta a consulta aos poucos: começa com "todas as costuras,
@@ -48,7 +70,74 @@ export default async function PaginaCosturas({
     consulta = consulta.eq('status_pagamento', statusPagamento)
   }
 
-  const { data: costuras } = await consulta.returns<Costura[]>()
+  // dt_costura é texto no formato AAAA-MM-DD — comparar como string
+  // funciona perfeitamente aqui, porque esse formato já nasce em
+  // ordem cronológica quando comparado letra por letra.
+  if (dataDe) {
+    consulta = consulta.gte('dt_costura', dataDe)
+  }
+  if (dataAte) {
+    consulta = consulta.lte('dt_costura', dataAte)
+  }
+
+  // ilike é "contém esse texto, sem diferenciar maiúsculas" — cada
+  // um desses três filtra sua própria coluna, de forma independente
+  // dos outros dois.
+  if (filtroLider) {
+    consulta = consulta.eq('lider', filtroLider)
+  }
+  if (filtroSupervisor) {
+    consulta = consulta.eq('supervisor', filtroSupervisor)
+  }
+  if (filtroCoordenador) {
+    consulta = consulta.eq('coordenador', filtroCoordenador)
+  }
+
+  // As duas buscas não dependem uma da outra, então rodam ao mesmo
+  // tempo com Promise.all — mais rápido do que esperar uma terminar
+  // pra só então começar a outra.
+  const [{ data: costuras }, { lideres, supervisores, coordenadores }] =
+    await Promise.all([consulta.returns<Costura[]>(), buscarOpcoesDeFiltro()])
+
+  // Monta os links de filtro rápido e o link de exportação sempre
+  // preservando os OUTROS filtros já ativos — só troca o pedaço que
+  // cada botão realmente controla.
+  function linkComFiltros(sobrescrever: Record<string, string | undefined>) {
+    const params = new URLSearchParams()
+    const atuais = {
+      busca,
+      status,
+      statusPagamento,
+      dataDe,
+      dataAte,
+      filtroLider,
+      filtroSupervisor,
+      filtroCoordenador,
+      ...sobrescrever,
+    }
+    for (const [chave, valor] of Object.entries(atuais)) {
+      if (valor) params.set(chave, valor)
+    }
+    return `/costuras?${params.toString()}`
+  }
+
+  const linkExportar = (() => {
+    const params = new URLSearchParams()
+    for (const [chave, valor] of Object.entries({
+      busca,
+      status,
+      statusPagamento,
+      dataDe,
+      dataAte,
+      filtroLider,
+      filtroSupervisor,
+      filtroCoordenador,
+    })) {
+      if (valor) params.set(chave, valor)
+    }
+    const query = params.toString()
+    return `/costuras/exportar${query ? `?${query}` : ''}`
+  })()
 
   // Soma em cima dos próprios resultados já filtrados pela consulta
   // acima — não é uma segunda busca no banco, só uma conta em cima
@@ -76,49 +165,125 @@ export default async function PaginaCosturas({
 
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-ink">Costuras</h1>
-        <Link
-          href="/costuras/novo"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
-        >
-          Nova costura
-        </Link>
+        <div className="flex gap-3">
+          <a
+            href={linkExportar}
+            className="rounded-md border border-border bg-card px-4 py-2 text-sm text-ink hover:bg-surface"
+          >
+            Exportar Excel
+          </a>
+          <Link
+            href="/costuras/novo"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
+          >
+            Nova costura
+          </Link>
+        </div>
       </div>
 
       {/* Filtro simples, por GET — sem nenhum JavaScript rodando no
           navegador. A própria URL guarda o filtro ativo, então dá
           pra compartilhar o link já filtrado com outra pessoa. */}
-      <form method="get" className="flex flex-wrap gap-3">
-        <input
-          type="text"
-          name="busca"
-          defaultValue={busca}
-          placeholder="Buscar por eletricista ou prefixo"
-          className="rounded-md border border-border bg-card px-3 py-2 text-sm text-ink"
-        />
-        <select
-          name="status"
-          defaultValue={status ?? ''}
-          className="rounded-md border border-border bg-card px-3 py-2 text-sm text-ink"
-        >
-          <option value="">Todos os status</option>
-          {Object.entries(STATUS_ENTREGA).map(([valor, { label }]) => (
-            <option key={valor} value={valor}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
-          name="statusPagamento"
-          defaultValue={statusPagamento ?? ''}
-          className="rounded-md border border-border bg-card px-3 py-2 text-sm text-ink"
-        >
-          <option value="">Todo pagamento</option>
-          {Object.entries(STATUS_PAGAMENTO).map(([valor, { label }]) => (
-            <option key={valor} value={valor}>
-              {label}
-            </option>
-          ))}
-        </select>
+      <form method="get" className="flex flex-wrap items-end gap-3">
+        <CampoFiltro label="Busca">
+          <input
+            type="text"
+            name="busca"
+            defaultValue={busca}
+            placeholder="Eletricista ou prefixo"
+            className={estiloFiltro}
+          />
+        </CampoFiltro>
+
+        <CampoFiltro label="Status de entrega">
+          <select name="status" defaultValue={status ?? ''} className={estiloFiltro}>
+            <option value="">Todos</option>
+            {Object.entries(STATUS_ENTREGA).map(([valor, { label }]) => (
+              <option key={valor} value={valor}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </CampoFiltro>
+
+        <CampoFiltro label="Status de pagamento">
+          <select
+            name="statusPagamento"
+            defaultValue={statusPagamento ?? ''}
+            className={estiloFiltro}
+          >
+            <option value="">Todos</option>
+            {Object.entries(STATUS_PAGAMENTO).map(([valor, { label }]) => (
+              <option key={valor} value={valor}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </CampoFiltro>
+
+        <CampoFiltro label="Líder">
+          <select
+            name="filtroLider"
+            defaultValue={filtroLider ?? ''}
+            className={estiloFiltro}
+          >
+            <option value="">Todos</option>
+            {lideres.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </CampoFiltro>
+
+        <CampoFiltro label="Supervisor">
+          <select
+            name="filtroSupervisor"
+            defaultValue={filtroSupervisor ?? ''}
+            className={estiloFiltro}
+          >
+            <option value="">Todos</option>
+            {supervisores.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </CampoFiltro>
+
+        <CampoFiltro label="Coordenador">
+          <select
+            name="filtroCoordenador"
+            defaultValue={filtroCoordenador ?? ''}
+            className={estiloFiltro}
+          >
+            <option value="">Todos</option>
+            {coordenadores.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </CampoFiltro>
+
+        <CampoFiltro label="De">
+          <input
+            type="date"
+            name="dataDe"
+            defaultValue={dataDe}
+            className={estiloFiltro}
+          />
+        </CampoFiltro>
+
+        <CampoFiltro label="Até">
+          <input
+            type="date"
+            name="dataAte"
+            defaultValue={dataAte}
+            className={estiloFiltro}
+          />
+        </CampoFiltro>
+
         <button
           type="submit"
           className="rounded-md border border-border bg-card px-4 py-2 text-sm text-ink hover:bg-surface"
@@ -126,6 +291,47 @@ export default async function PaginaCosturas({
           Filtrar
         </button>
       </form>
+
+      {/* Atalhos de período — cada um já é um link pronto, calculado
+          no servidor, preservando os demais filtros ativos. */}
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="text-ink/50">Período:</span>
+        <Link
+          href={linkComFiltros({
+            dataDe: periodoHoje().de,
+            dataAte: periodoHoje().ate,
+          })}
+          className="rounded-full border border-border px-3 py-1 text-ink/70 hover:bg-surface"
+        >
+          Hoje
+        </Link>
+        <Link
+          href={linkComFiltros({
+            dataDe: periodoEstaSemana().de,
+            dataAte: periodoEstaSemana().ate,
+          })}
+          className="rounded-full border border-border px-3 py-1 text-ink/70 hover:bg-surface"
+        >
+          Esta semana
+        </Link>
+        <Link
+          href={linkComFiltros({
+            dataDe: periodoEsteMes().de,
+            dataAte: periodoEsteMes().ate,
+          })}
+          className="rounded-full border border-border px-3 py-1 text-ink/70 hover:bg-surface"
+        >
+          Este mês
+        </Link>
+        {(dataDe || dataAte) && (
+          <Link
+            href={linkComFiltros({ dataDe: undefined, dataAte: undefined })}
+            className="rounded-full px-3 py-1 text-primary hover:underline"
+          >
+            Limpar período
+          </Link>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-3">
         <CartaoResumo label="Total (filtro atual)" valor={resumoPagamento.total} />
@@ -147,7 +353,9 @@ export default async function PaginaCosturas({
             <tr>
               <th className="px-4 py-3">Eletricista</th>
               <th className="px-4 py-3">Prefixo</th>
-              <th className="px-4 py-3">Líder/Supervisor</th>
+              <th className="px-4 py-3">Líder</th>
+              <th className="px-4 py-3">Supervisor</th>
+              <th className="px-4 py-3">Coordenador</th>
               <th className="px-4 py-3">Dt Costura</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pagamento</th>
@@ -163,14 +371,15 @@ export default async function PaginaCosturas({
               >
                 <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.prefixo ?? '—'}</td>
+                <td className="px-4 py-3 text-ink/70">{costura.lider ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">
-                  {costura.lider_supervisor ?? '—'}
+                  {costura.supervisor ?? '—'}
                 </td>
                 <td className="px-4 py-3 text-ink/70">
-                  {new Date(`${costura.dt_costura}T00:00:00`).toLocaleDateString(
-                    'pt-BR',
-                    { timeZone: 'America/Fortaleza' }
-                  )}
+                  {costura.coordenador ?? '—'}
+                </td>
+                <td className="px-4 py-3 text-ink/70">
+                  {formatarDataBR(costura.dt_costura)}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={costura.status_entrega} />
@@ -204,7 +413,7 @@ export default async function PaginaCosturas({
 
             {costuras?.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-ink/50">
+                <td colSpan={10} className="px-4 py-6 text-center text-ink/50">
                   Nenhuma costura encontrada.
                 </td>
               </tr>
@@ -213,6 +422,29 @@ export default async function PaginaCosturas({
         </table>
       </div>
     </div>
+  )
+}
+
+const estiloFiltro =
+  'rounded-md border border-border bg-card px-3 py-2 text-sm text-ink'
+
+// O nome do filtro aparece em cima do campo, em vez de só dentro da
+// opção vazia do select (que ficava um "Todo líder", "Todo
+// supervisor"... repetitivo e meio estranho de ler). Cada campo via
+// CampoFiltro mostra o rótulo certo, com "Todos" sozinho dentro do
+// select.
+function CampoFiltro({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-xs text-ink/60">
+      {label}
+      {children}
+    </label>
   )
 }
 

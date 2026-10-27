@@ -11,7 +11,9 @@ import { STATUS_VALUES, STATUS_VALUES_PAGAMENTO } from '@/types/costura'
 export const costuraSchema = z.object({
   eletricista_nome: z.string().trim().min(1, 'Informe o nome do eletricista'),
   prefixo: z.string().trim().optional(),
-  lider_supervisor: z.string().trim().optional(),
+  lider: z.string().trim().optional(),
+  supervisor: z.string().trim().optional(),
+  coordenador: z.string().trim().optional(),
 
   // Fica como texto mesmo — é o que um <input> entrega. A conversão
   // pra número só acontece depois, na hora de salvar no banco
