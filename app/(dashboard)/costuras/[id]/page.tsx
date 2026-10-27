@@ -65,8 +65,7 @@ export default async function PaginaEditarCostura({
             status_entrega: costura.status_entrega,
           }}
           aoSalvar={salvarComId}
-          textoBotao="Salvar alterações"
-        />
+          textoBotao="Salvar alterações" fiscais={[]}/>
       </div>
 
       {historico && historico.length > 0 && (
