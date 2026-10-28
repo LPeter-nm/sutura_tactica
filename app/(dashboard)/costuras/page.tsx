@@ -361,6 +361,7 @@ export default async function PaginaCosturas({
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pagamento</th>
               <th className="px-4 py-3">Pago por</th>
+              <th className="px-4 py-3">Valor</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -391,6 +392,9 @@ export default async function PaginaCosturas({
                 </td>
                 <td className="px-4 py-3 text-ink/70">
                   {costura.pago_por ?? '—'}
+                </td>
+                <td className="px-4 py-3 text-ink/70">
+                  {costura.quantidade_pagamento ?? '—'}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
