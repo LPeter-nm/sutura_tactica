@@ -206,7 +206,7 @@ export function CosturaForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Campo label="Dt Costura" erro={errors.dt_costura?.message}>
+        <Campo label="Recebido em" erro={errors.dt_costura?.message}>
           <input type="date" {...register('dt_costura')} className={estiloInput} />
         </Campo>
         <Campo

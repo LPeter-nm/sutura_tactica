@@ -355,7 +355,7 @@ export default async function PaginaCosturas({
               <th className="px-4 py-3">Eletricista</th>
               <th className="px-4 py-3">Prefixo</th>
               <th className="px-4 py-3">Líder</th>
-              <th className="px-4 py-3">Dt Costura</th>
+              <th className="px-4 py-3">Recebido em</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pagamento</th>
               <th className="px-4 py-3 text-right">Ações</th>

@@ -30,7 +30,7 @@ export function CosturaDetalhes({
         <Campo rotulo="Coordenador" valor={costura.coordenador ?? '—'} />
         <Campo rotulo="Tipo de fardamento" valor={costura.tipo_fardamento} />
         <Campo rotulo="Local de costura" valor={costura.local_costura} />
-        <Campo rotulo="Dt Costura" valor={formatarDataBR(costura.dt_costura)} />
+        <Campo rotulo="Recebido em" valor={formatarDataBR(costura.dt_costura)} />
         <Campo
           rotulo="Quantidade a pagar"
           valor={
