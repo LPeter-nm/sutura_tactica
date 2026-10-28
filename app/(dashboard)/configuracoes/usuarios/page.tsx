@@ -31,10 +31,6 @@ export default async function PaginaUsuarios() {
     <div className="space-y-6">
       <div>
         <h1 className="text-lg font-semibold text-ink">Usuários</h1>
-        <p className="text-sm text-ink/60">
-          Quem pode entrar no sistema. Criar um usuário aqui substitui ter que
-          abrir o painel do Supabase pra fazer isso manualmente.
-        </p>
       </div>
 
       <div className="rounded-md border border-border bg-card p-4">

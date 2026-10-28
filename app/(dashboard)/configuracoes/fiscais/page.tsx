@@ -13,11 +13,7 @@ export default async function PaginaEquipe() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-ink">Equipe</h1>
-          <p className="text-sm text-ink/60">
-            Fiscais e a dupla (supervisor/coordenador) de cada um — usados para
-            preencher esses campos sozinhos no cadastro de uma costura.
-          </p>
+          <h1 className="text-lg font-semibold text-ink">Fiscais</h1>
         </div>
         <Link
           href="/configuracoes/fiscais/novo"
