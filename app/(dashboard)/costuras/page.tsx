@@ -1,11 +1,13 @@
 // app/(dashboard)/costuras/page.tsx
 
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { Eye, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { buscarOpcoesDeFiltro } from '@/lib/costuras'
 import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
 import { AvisoSucesso } from '@/components/aviso-sucesso'
+import { BuscaAutomatica } from '@/components/busca-automatica'
 import { STATUS_ENTREGA, STATUS_PAGAMENTO, type Costura } from '@/types/costura'
 import {
   formatarDataBR,
@@ -186,13 +188,11 @@ export default async function PaginaCosturas({
           pra compartilhar o link já filtrado com outra pessoa. */}
       <form method="get" className="flex flex-wrap items-end gap-3">
         <CampoFiltro label="Busca">
-          <input
-            type="text"
-            name="busca"
-            defaultValue={busca}
-            placeholder="Eletricista ou prefixo"
-            className={estiloFiltro}
-          />
+          {/* O fallback só aparece numa fração de segundo, na
+              primeiríssima renderização — na prática, invisível. */}
+          <Suspense fallback={<input className={estiloFiltro} disabled />}>
+            <BuscaAutomatica valorInicial={busca} />
+          </Suspense>
         </CampoFiltro>
 
         <CampoFiltro label="Status de entrega">
@@ -358,7 +358,6 @@ export default async function PaginaCosturas({
               <th className="px-4 py-3">Dt Costura</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pagamento</th>
-              <th className="px-4 py-3">Valor</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -380,9 +379,6 @@ export default async function PaginaCosturas({
                 </td>
                 <td className="px-4 py-3">
                   <StatusPagamentoBadge status={costura.status_pagamento} />
-                </td>
-                <td className="px-4 py-3 text-ink/70">
-                  {costura.quantidade_pagamento?.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'}) ?? '—'}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
