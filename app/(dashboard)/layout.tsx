@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { sair } from '../login/actions'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { NavSidebar } from '@/components/nav-sidebar'
+import { Sidebar } from '@/components/sidebar'
 
 // Com o Cache Components desligado (veja next.config.ts), o Next.js
 // volta a detectar sozinho que esta página é dinâmica, só de perceber
@@ -32,19 +32,7 @@ export default async function LayoutDashboard({
 
   return (
     <div className="flex min-h-screen">
-      {/* Barra lateral: existe desde que o sistema ganhou mais de uma
-          área (Costuras, Equipe, Usuários) — com só uma página, um
-          cabeçalho simples bastava; com três, uma navegação fixa
-          escala melhor do que empilhar links no topo. */}
-      <aside className="flex w-56 shrink-0 flex-col gap-6 border-r border-border bg-card p-4">
-        <div className="flex items-center gap-2 px-2">
-          <span className="h-2 w-6 rounded-sm bg-primary" />
-          <span className="text-sm font-semibold text-ink">
-            Controle de Costuras
-          </span>
-        </div>
-        <NavSidebar />
-      </aside>
+      <Sidebar />
 
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-end gap-4 border-b border-border bg-card px-6 py-3 text-sm">
