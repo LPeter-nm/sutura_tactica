@@ -351,8 +351,8 @@ export default async function PaginaCosturas({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border text-xs uppercase text-ink/50">
             <tr>
-              <th className="px-4 py-3">Eletricista</th>
               <th className="px-4 py-3">Matrícula</th>
+              <th className="px-4 py-3">Eletricista</th>
               <th className="px-4 py-3">Prefixo</th>
               <th className="px-4 py-3">Líder</th>
               <th className="px-4 py-3">Supervisor</th>
@@ -370,8 +370,8 @@ export default async function PaginaCosturas({
                 key={costura.id}
                 className="border-b border-border last:border-0 hover:bg-surface"
               >
-                <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.matricula ?? '—'}</td>
+                <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.prefixo ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.lider ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">
