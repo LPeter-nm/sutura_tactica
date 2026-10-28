@@ -12,17 +12,22 @@ import {
   PanelLeftOpen,
 } from 'lucide-react'
 
-const LINKS = [
-  { href: '/costuras', rotulo: 'Costuras', Icone: Shirt },
+const LINKS_BASE = [{ href: '/costuras', rotulo: 'Costuras', Icone: Shirt }]
+
+const LINKS_ADMIN = [
   { href: '/configuracoes/fiscais', rotulo: 'Fiscais', Icone: Users },
   { href: '/configuracoes/usuarios', rotulo: 'Usuários', Icone: UserCog },
 ]
 
 const CHAVE_LOCALSTORAGE = 'barra-lateral-recolhida'
 
-export function Sidebar() {
+export function Sidebar({ admin }: { admin: boolean }) {
   const caminhoAtual = usePathname()
   const [recolhida, setRecolhida] = useState(false)
+
+  // Quem não é admin nem vê esses dois links existirem — a barra
+  // lateral só mostra o que a pessoa realmente pode acessar.
+  const links = admin ? [...LINKS_BASE, ...LINKS_ADMIN] : LINKS_BASE
 
   // Lembra a escolha entre uma visita e outra, igual já fazemos com
   // o tema — mesmo princípio, mesmo lugar (localStorage), mesma
@@ -51,8 +56,20 @@ export function Sidebar() {
         )}
       </div>
 
+      {/* Perto do topo, como peça fixa de orientação — em vez de lá
+          embaixo, onde ficava fácil de esquecer que existia. */}
+      <button
+        type="button"
+        onClick={alternar}
+        aria-label={recolhida ? 'Expandir menu' : 'Recolher menu'}
+        className="flex items-center justify-center rounded-md border border-border
+                   py-2 text-ink/50 hover:bg-surface hover:text-ink"
+      >
+        {recolhida ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+      </button>
+
       <nav className="flex flex-col gap-1">
-        {LINKS.map(({ href, rotulo, Icone }) => {
+        {links.map(({ href, rotulo, Icone }) => {
           const ativo =
             caminhoAtual === href || caminhoAtual.startsWith(`${href}/`)
 
@@ -78,16 +95,6 @@ export function Sidebar() {
           )
         })}
       </nav>
-
-      <button
-        type="button"
-        onClick={alternar}
-        aria-label={recolhida ? 'Expandir menu' : 'Recolher menu'}
-        className="mt-auto flex items-center justify-center rounded-md border
-                   border-border py-2 text-ink/50 hover:bg-surface hover:text-ink"
-      >
-        {recolhida ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-      </button>
     </aside>
   )
 }

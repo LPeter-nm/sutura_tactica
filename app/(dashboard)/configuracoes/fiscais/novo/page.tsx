@@ -1,4 +1,4 @@
-// app/(dashboard)/configuracoes/equipe/novo/page.tsx
+// app/(dashboard)/configuracoes/fiscais/novo/page.tsx
 
 import { FiscalForm } from '@/components/fiscal-form'
 import { criarFiscal } from '../actions'

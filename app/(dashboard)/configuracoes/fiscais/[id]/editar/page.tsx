@@ -1,4 +1,4 @@
-// app/(dashboard)/configuracoes/equipe/[id]/editar/page.tsx
+// app/(dashboard)/configuracoes/fiscais/[id]/editar/page.tsx
 
 import { notFound } from 'next/navigation'
 import { buscarFiscal } from '@/lib/fiscais'

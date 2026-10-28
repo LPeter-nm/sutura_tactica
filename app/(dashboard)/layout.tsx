@@ -30,9 +30,14 @@ export default async function LayoutDashboard({
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Já tínhamos o usuário buscado aqui mesmo (pra mostrar o e-mail no
+  // cabeçalho) — então só olhamos o app_metadata dele direto, sem
+  // chamar ehAdmin() de novo e duplicar a mesma busca.
+  const admin = user?.app_metadata?.role === 'admin'
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <Sidebar admin={admin} />
 
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-end gap-4 border-b border-border bg-card px-6 py-3 text-sm">

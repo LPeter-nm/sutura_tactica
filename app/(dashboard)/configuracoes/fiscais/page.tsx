@@ -1,4 +1,4 @@
-// app/(dashboard)/configuracoes/equipe/page.tsx
+// app/(dashboard)/configuracoes/fiscais/page.tsx
 
 import Link from 'next/link'
 import { Pencil } from 'lucide-react'
