@@ -122,9 +122,17 @@ export function CosturaForm({
 
   return (
     <form onSubmit={handleSubmit(aoEnviar)} className="max-w-xl space-y-4">
-      <Campo label="Nome do eletricista" erro={errors.eletricista_nome?.message}>
-        <input {...register('eletricista_nome')} className={estiloInput} />
-      </Campo>
+      <div className="grid grid-cols-2 gap-4">
+        <Campo
+          label="Nome do eletricista"
+          erro={errors.eletricista_nome?.message}
+        >
+          <input {...register('eletricista_nome')} className={estiloInput} />
+        </Campo>
+        <Campo label="Matrícula" erro={errors.matricula?.message}>
+          <input {...register('matricula')} className={estiloInput} />
+        </Campo>
+      </div>
 
       <Campo label="Prefixo" erro={errors.prefixo?.message}>
         <input

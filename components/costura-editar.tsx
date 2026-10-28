@@ -26,6 +26,7 @@ export function CosturaEditar({
         fiscais={fiscais}
         valoresIniciais={{
           eletricista_nome: costura.eletricista_nome,
+          matricula: costura.matricula ?? '',
           prefixo: costura.prefixo ?? '',
           lider: costura.lider ?? '',
           supervisor: costura.supervisor ?? '',

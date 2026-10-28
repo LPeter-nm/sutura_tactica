@@ -87,6 +87,7 @@ export async function GET(request: NextRequest) {
   // mais à frente, sem depender da ordem das propriedades do objeto.
   planilha.columns = [
     { header: 'Eletricista', key: 'eletricista', width: 24 },
+    { header: 'Matrícula', key: 'matricula', width: 14 },
     { header: 'Prefixo', key: 'prefixo', width: 16 },
     { header: 'Líder', key: 'lider', width: 18 },
     { header: 'Supervisor', key: 'supervisor', width: 18 },
@@ -103,6 +104,7 @@ export async function GET(request: NextRequest) {
   for (const c of costuras) {
     planilha.addRow({
       eletricista: c.eletricista_nome,
+      matricula: c.matricula ?? '',
       prefixo: c.prefixo ?? '',
       lider: c.lider ?? '',
       supervisor: c.supervisor ?? '',

@@ -61,7 +61,8 @@ export const STATUS_PAGAMENTO: Record<
 export type Costura = {
   id: string
   eletricista_nome: string
-  // null: todos os três são opcionais
+  // null: todos os quatro são opcionais
+  matricula: string | null
   prefixo: string | null
   lider: string | null
   supervisor: string | null

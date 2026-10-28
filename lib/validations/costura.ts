@@ -10,6 +10,7 @@ import { STATUS_VALUES, STATUS_VALUES_PAGAMENTO } from '@/types/costura'
 // que ele mora num arquivo à parte, importável dos dois lados.
 export const costuraSchema = z.object({
   eletricista_nome: z.string().trim().min(1, 'Informe o nome do eletricista'),
+  matricula: z.string().trim().optional(),
   prefixo: z.string().trim().optional(),
   lider: z.string().trim().optional(),
   supervisor: z.string().trim().optional(),

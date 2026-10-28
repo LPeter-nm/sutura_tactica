@@ -23,6 +23,7 @@ export function CosturaDetalhes({
       </div>
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+        <Campo rotulo="Matrícula" valor={costura.matricula ?? '—'} />
         <Campo rotulo="Prefixo" valor={costura.prefixo ?? '—'} />
         <Campo rotulo="Líder" valor={costura.lider ?? '—'} />
         <Campo rotulo="Supervisor" valor={costura.supervisor ?? '—'} />
