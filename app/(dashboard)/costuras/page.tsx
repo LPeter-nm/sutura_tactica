@@ -33,6 +33,7 @@ export default async function PaginaCosturas({
     filtroLider?: string
     filtroSupervisor?: string
     filtroCoordenador?: string
+    pagina?: string
     sucesso?: string
   }>
 }) {
@@ -45,61 +46,69 @@ export default async function PaginaCosturas({
     filtroLider,
     filtroSupervisor,
     filtroCoordenador,
+    pagina,
     sucesso,
   } = await searchParams
   const supabase = await createClient()
 
-  // Monta a consulta aos poucos: começa com "todas as costuras,
-  // ordenadas por prazo" e só adiciona filtros se a pessoa pediu.
-  // O RLS que configuramos no banco já garante, por baixo, que só
-  // quem está autenticado chega até aqui.
-  let consulta = supabase
-    .from('costuras')
-    .select('*')
-    .order('dt_costura', { ascending: true })
+  const TAMANHO_PAGINA = 25
+  const paginaAtual = Math.max(1, Number(pagina) || 1)
 
-  if (busca) {
-    consulta = consulta.or(
-      `eletricista_nome.ilike.%${busca}%,prefixo.ilike.%${busca}%`
-    )
-  }
+  // Os mesmos filtros são usados em DUAS consultas diferentes — a da
+  // tabela (paginada) e a da soma (sempre olhando pro filtro inteiro,
+  // nunca só pra página visível). Em vez de repetir a lógica duas
+  // vezes, ela mora aqui, parametrizada pelas colunas que cada
+  // consulta realmente precisa.
+  function construirConsulta(colunas: string, opcoes?: { count?: 'exact' }) {
+    let consulta = supabase.from('costuras').select(colunas, opcoes)
 
-  if (status) {
-    consulta = consulta.eq('status_entrega', status)
-  }
+    if (busca) {
+      consulta = consulta.or(
+        `eletricista_nome.ilike.%${busca}%,prefixo.ilike.%${busca}%`
+      )
+    }
+    if (status) consulta = consulta.eq('status_entrega', status)
+    if (statusPagamento) {
+      consulta = consulta.eq('status_pagamento', statusPagamento)
+    }
+    // dt_costura é texto no formato AAAA-MM-DD — comparar como string
+    // funciona perfeitamente aqui, porque esse formato já nasce em
+    // ordem cronológica quando comparado letra por letra.
+    if (dataDe) consulta = consulta.gte('dt_costura', dataDe)
+    if (dataAte) consulta = consulta.lte('dt_costura', dataAte)
+    if (filtroLider) consulta = consulta.eq('lider', filtroLider)
+    if (filtroSupervisor) consulta = consulta.eq('supervisor', filtroSupervisor)
+    if (filtroCoordenador) {
+      consulta = consulta.eq('coordenador', filtroCoordenador)
+    }
 
-  if (statusPagamento) {
-    consulta = consulta.eq('status_pagamento', statusPagamento)
-  }
-
-  // dt_costura é texto no formato AAAA-MM-DD — comparar como string
-  // funciona perfeitamente aqui, porque esse formato já nasce em
-  // ordem cronológica quando comparado letra por letra.
-  if (dataDe) {
-    consulta = consulta.gte('dt_costura', dataDe)
-  }
-  if (dataAte) {
-    consulta = consulta.lte('dt_costura', dataAte)
-  }
-
-  // ilike é "contém esse texto, sem diferenciar maiúsculas" — cada
-  // um desses três filtra sua própria coluna, de forma independente
-  // dos outros dois.
-  if (filtroLider) {
-    consulta = consulta.eq('lider', filtroLider)
-  }
-  if (filtroSupervisor) {
-    consulta = consulta.eq('supervisor', filtroSupervisor)
-  }
-  if (filtroCoordenador) {
-    consulta = consulta.eq('coordenador', filtroCoordenador)
+    return consulta
   }
 
-  // As duas buscas não dependem uma da outra, então rodam ao mesmo
-  // tempo com Promise.all — mais rápido do que esperar uma terminar
-  // pra só então começar a outra.
-  const [{ data: costuras }, { lideres, supervisores, coordenadores }] =
-    await Promise.all([consulta.returns<Costura[]>(), buscarOpcoesDeFiltro()])
+  const inicio = (paginaAtual - 1) * TAMANHO_PAGINA
+  const fim = inicio + TAMANHO_PAGINA - 1
+
+  // Três buscas independentes, rodando ao mesmo tempo: a página da
+  // tabela (com count: 'exact', que pede ao Postgres o total de
+  // linhas que batem com o filtro, não só as 25 desta página), a
+  // soma de pagamentos (colunas enxutas, sem paginação — precisa ver
+  // TUDO que bate com o filtro pra somar certo) e as opções de
+  // filtro.
+  const [respostaTabela, respostaResumo, { lideres, supervisores, coordenadores }] =
+    await Promise.all([
+      construirConsulta('*', { count: 'exact' })
+        .order('dt_costura', { ascending: true })
+        .range(inicio, fim)
+        .returns<Costura[]>(),
+      construirConsulta('quantidade_pagamento, status_pagamento').returns<
+        Pick<Costura, 'quantidade_pagamento' | 'status_pagamento'>[]
+      >(),
+      buscarOpcoesDeFiltro(),
+    ])
+
+  const costuras = respostaTabela.data
+  const totalFiltrado = respostaTabela.count ?? 0
+  const totalPaginas = Math.max(1, Math.ceil(totalFiltrado / TAMANHO_PAGINA))
 
   // Monta os links de filtro rápido e o link de exportação sempre
   // preservando os OUTROS filtros já ativos — só troca o pedaço que
@@ -141,11 +150,11 @@ export default async function PaginaCosturas({
     return `/costuras/exportar${query ? `?${query}` : ''}`
   })()
 
-  // Soma em cima dos próprios resultados já filtrados pela consulta
-  // acima — não é uma segunda busca no banco, só uma conta em cima
-  // do que já veio. Por isso ela "respeita" busca e status sozinha,
-  // sem precisar de nenhuma lógica extra de filtro aqui.
-  const resumoPagamento = (costuras ?? []).reduce(
+  // Soma em cima de TODAS as costuras que batem com o filtro — nunca
+  // só as 25 da página visível. É por isso que ela usa
+  // respostaResumo.data (sem paginação), não "costuras" (que é só a
+  // página atual da tabela).
+  const resumoPagamento = (respostaResumo.data ?? []).reduce(
     (acumulado, c) => {
       if (c.quantidade_pagamento == null) return acumulado
       acumulado.total += c.quantidade_pagamento
@@ -413,6 +422,27 @@ export default async function PaginaCosturas({
           </tbody>
         </table>
       </div>
+
+      <div className="flex items-center justify-between text-sm text-ink/60">
+        <span>
+          Página {paginaAtual} de {totalPaginas} — {totalFiltrado}{' '}
+          {totalFiltrado === 1 ? 'costura' : 'costuras'}
+        </span>
+        <div className="flex gap-2">
+          <LinkPagina
+            href={linkComFiltros({ pagina: String(paginaAtual - 1) })}
+            desabilitado={paginaAtual <= 1}
+          >
+            Anterior
+          </LinkPagina>
+          <LinkPagina
+            href={linkComFiltros({ pagina: String(paginaAtual + 1) })}
+            desabilitado={paginaAtual >= totalPaginas}
+          >
+            Próxima
+          </LinkPagina>
+        </div>
+      </div>
     </div>
   )
 }
@@ -437,6 +467,37 @@ function CampoFiltro({
       {label}
       {children}
     </label>
+  )
+}
+
+// Um link comum, só que capaz de se desenhar "desabilitado" quando
+// já não existe página anterior/seguinte. Não é um <button> de
+// propósito — continua sendo um link de verdade, que funciona sem
+// JavaScript nenhum, igual todo o resto desse sistema de filtros.
+function LinkPagina({
+  href,
+  desabilitado,
+  children,
+}: {
+  href: string
+  desabilitado: boolean
+  children: React.ReactNode
+}) {
+  if (desabilitado) {
+    return (
+      <span className="rounded-md border border-border px-3 py-1.5 text-ink/30">
+        {children}
+      </span>
+    )
+  }
+
+  return (
+    <Link
+      href={href}
+      className="rounded-md border border-border px-3 py-1.5 text-ink/70 hover:bg-surface"
+    >
+      {children}
+    </Link>
   )
 }
 
