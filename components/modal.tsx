@@ -29,8 +29,7 @@ export function Modal({ children }: { children: React.ReactNode }) {
           fundo escurecido logo acima. */}
       <div
         onClick={(evento) => evento.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg
-                   border border-border bg-card p-6 shadow-lg"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-lg"
       >
         {children}
       </div>

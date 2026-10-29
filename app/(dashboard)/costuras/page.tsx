@@ -106,6 +106,17 @@ export default async function PaginaCosturas({
       buscarOpcoesDeFiltro(),
     ])
 
+  // Mesmo princípio de lib/fiscais.ts e lib/eletricistas.ts: um erro
+  // aqui (coluna renomeada no código mas não no banco, por exemplo)
+  // não pode mais virar silenciosamente "nenhuma costura encontrada"
+  // — agora ele aparece no terminal, com a mensagem real do Postgres.
+  if (respostaTabela.error) {
+    console.error('Erro ao buscar costuras:', respostaTabela.error.message)
+  }
+  if (respostaResumo.error) {
+    console.error('Erro ao buscar resumo de pagamentos:', respostaResumo.error.message)
+  }
+
   const costuras = respostaTabela.data
   const totalFiltrado = respostaTabela.count ?? 0
   const totalPaginas = Math.max(1, Math.ceil(totalFiltrado / TAMANHO_PAGINA))
@@ -418,7 +429,7 @@ export default async function PaginaCosturas({
 
             {costuras?.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-4 py-6 text-center text-ink/50">
+                <td colSpan={10} className="px-4 py-6 text-center text-ink/50">
                   Nenhuma costura encontrada.
                 </td>
               </tr>

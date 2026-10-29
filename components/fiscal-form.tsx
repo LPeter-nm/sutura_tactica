@@ -52,8 +52,7 @@ export function FiscalForm({ valoresIniciais, aoSalvar, textoBotao }: FiscalForm
       <button
         type="submit"
         disabled={enviando}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white
-                   transition-colors hover:bg-primary-dark disabled:opacity-60"
+        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark disabled:opacity-60"
       >
         {enviando ? 'Salvando...' : textoBotao}
       </button>

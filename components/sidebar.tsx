@@ -44,8 +44,7 @@ export function Sidebar({ admin }: { admin: boolean }) {
 
   return (
     <aside
-      className={`flex shrink-0 flex-col gap-6 border-r border-border bg-card p-4
-                  transition-[width] duration-200 ${recolhida ? 'w-16' : 'w-56'}`}
+      className={`flex shrink-0 flex-col gap-6 border-r border-border bg-card p-4 transition-[width] duration-200 ${recolhida ? 'w-16' : 'w-56'}`}
     >
       <div className="flex items-center gap-2 overflow-hidden px-1">
         <span className="h-2 w-6 shrink-0 rounded-sm bg-primary" />
@@ -62,8 +61,7 @@ export function Sidebar({ admin }: { admin: boolean }) {
         type="button"
         onClick={alternar}
         aria-label={recolhida ? 'Expandir menu' : 'Recolher menu'}
-        className="flex items-center justify-center rounded-md border border-border
-                   py-2 text-ink/50 hover:bg-surface hover:text-ink"
+        className="flex items-center justify-center rounded-md border border-border py-2 text-ink/50 hover:bg-surface hover:text-ink"
       >
         {recolhida ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
       </button>

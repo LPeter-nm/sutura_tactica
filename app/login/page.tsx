@@ -1,3 +1,5 @@
+// app/login/page.tsx
+
 import { entrar } from './actions'
 import { AvisoErroLogin } from '@/components/aviso-erro-login'
 
@@ -29,8 +31,7 @@ export default async function PaginaLogin({
               type="email"
               required
               autoComplete="email"
-              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm
-                         focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
+              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
             />
           </div>
 
@@ -44,8 +45,7 @@ export default async function PaginaLogin({
               type="password"
               required
               autoComplete="current-password"
-              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm
-                         focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
+              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
             />
           </div>
 
@@ -53,8 +53,7 @@ export default async function PaginaLogin({
 
           <button
             type="submit"
-            className="w-full rounded-md bg-primary py-2 text-sm font-medium text-white
-                       transition-colors hover:bg-primary-dark"
+            className="w-full rounded-md bg-primary py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
           >
             Entrar
           </button>
