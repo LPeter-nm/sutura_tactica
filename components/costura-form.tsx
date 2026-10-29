@@ -8,6 +8,7 @@ import { costuraSchema, type CosturaFormValues } from '@/lib/validations/costura
 import { STATUS_ENTREGA, STATUS_PAGAMENTO } from '@/types/costura'
 import { useToast } from '@/components/toast-provider'
 import type { Fiscal } from '@/lib/fiscais'
+import type { Eletricista } from '@/lib/eletricistas'
 
 type CosturaFormProps = {
   valoresIniciais?: Partial<CosturaFormValues>
@@ -15,6 +16,9 @@ type CosturaFormProps = {
   // usa este formulário — não mais de uma lista fixa no código. Por
   // isso quem chama <CosturaForm> precisa passar essa prop.
   fiscais: Fiscal[]
+  // Mesma ideia, pra matrícula e prefixo se preencherem sozinhos ao
+  // digitar um nome já cadastrado.
+  eletricistas: Eletricista[]
   // Esta prop recebe diretamente uma Server Action (de verdade, uma
   // função marcada "use server" lá no arquivo actions.ts — ou essa
   // mesma função já "pré-presa" a um id, via .bind(), no caso da
@@ -27,6 +31,7 @@ type CosturaFormProps = {
 export function CosturaForm({
   valoresIniciais,
   fiscais,
+  eletricistas,
   aoSalvar,
   textoBotao,
 }: CosturaFormProps) {
@@ -68,6 +73,17 @@ export function CosturaForm({
       }
     }, [fiscais])
 
+  // Mesmo princípio dos fiscais: um mapa pronto, nome → {matrícula,
+  // prefixo}, pra consultar em O(1) a cada letra digitada, sem
+  // percorrer a lista inteira de eletricistas toda vez.
+  const eletricistaPorNome = useMemo(() => {
+    const mapa: Record<string, Eletricista> = {}
+    for (const eletricista of eletricistas) {
+      mapa[eletricista.nome] = eletricista
+    }
+    return mapa
+  }, [eletricistas])
+
   const {
     register,
     handleSubmit,
@@ -94,6 +110,7 @@ export function CosturaForm({
   // do NOSSO onChange, que faz o preenchimento automático de
   // supervisor/coordenador logo abaixo.
   const registroLider = register('lider')
+  const registroEletricista = register('eletricista_nome')
 
   // "Pago por" é um select, mas com uma porta de saída: se o nome
   // não estiver na lista conhecida, a pessoa escolhe "Outra
@@ -127,7 +144,28 @@ export function CosturaForm({
           label="Nome do eletricista"
           erro={errors.eletricista_nome?.message}
         >
-          <input {...register('eletricista_nome')} className={estiloInput} />
+          {/* list="..." liga este input a um <datalist> — o navegador
+              sozinho já mostra as sugestões que batem com o que foi
+              digitado, sem nenhuma biblioteca extra pra isso. */}
+          <input
+            {...registroEletricista}
+            onChange={(evento) => {
+              registroEletricista.onChange(evento)
+
+              const eletricista = eletricistaPorNome[evento.target.value]
+              if (eletricista) {
+                setValue('matricula', eletricista.matricula)
+                setValue('prefixo', eletricista.prefixo ?? '')
+              }
+            }}
+            list="lista-eletricistas"
+            className={estiloInput}
+          />
+          <datalist id="lista-eletricistas">
+            {eletricistas.map((eletricista) => (
+              <option key={eletricista.id} value={eletricista.nome} />
+            ))}
+          </datalist>
         </Campo>
         <Campo label="Matrícula" erro={errors.matricula?.message}>
           <input {...register('matricula')} className={estiloInput} />
@@ -206,8 +244,8 @@ export function CosturaForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Campo label="Recebido em" erro={errors.dt_costura?.message}>
-          <input type="date" {...register('dt_costura')} className={estiloInput} />
+        <Campo label="Recebido em" erro={errors.recebido_em?.message}>
+          <input type="date" {...register('recebido_em')} className={estiloInput} />
         </Campo>
         <Campo
           label="Quantidade a pagar (opcional)"

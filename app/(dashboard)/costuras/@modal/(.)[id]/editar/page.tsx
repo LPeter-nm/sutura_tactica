@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { Modal } from '@/components/modal'
 import { buscarCostura } from '@/lib/costuras'
 import { buscarFiscais } from '@/lib/fiscais'
+import { buscarEletricistas } from '@/lib/eletricistas'
 import { CosturaEditar } from '@/components/costura-editar'
 
 export default async function ModalEditarCostura({
@@ -13,9 +14,10 @@ export default async function ModalEditarCostura({
 }) {
   const { id } = await params
 
-  const [costura, fiscais] = await Promise.all([
+  const [costura, fiscais, eletricistas] = await Promise.all([
     buscarCostura(id),
     buscarFiscais(),
+    buscarEletricistas(),
   ])
 
   if (!costura) {
@@ -24,7 +26,7 @@ export default async function ModalEditarCostura({
 
   return (
     <Modal>
-      <CosturaEditar costura={costura} fiscais={fiscais} />
+      <CosturaEditar costura={costura} fiscais={fiscais} eletricistas={eletricistas} />
     </Modal>
   )
 }

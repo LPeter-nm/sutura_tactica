@@ -1,6 +1,6 @@
 // lib/datas.ts
 
-// Uma data de calendário (como dt_costura) não tem hora — então nunca
+// Uma data de calendário (como recebido_em) não tem hora — então nunca
 // deveria passar por conversão de fuso horário nenhuma. Em vez de
 // criar um objeto Date (que obriga a escolher ALGUM fuso pra
 // interpretar o texto), a gente só lê os pedaços do texto direto.

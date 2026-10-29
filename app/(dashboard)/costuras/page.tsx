@@ -71,11 +71,11 @@ export default async function PaginaCosturas({
     if (statusPagamento) {
       consulta = consulta.eq('status_pagamento', statusPagamento)
     }
-    // dt_costura é texto no formato AAAA-MM-DD — comparar como string
+    // recebido_em é texto no formato AAAA-MM-DD — comparar como string
     // funciona perfeitamente aqui, porque esse formato já nasce em
     // ordem cronológica quando comparado letra por letra.
-    if (dataDe) consulta = consulta.gte('dt_costura', dataDe)
-    if (dataAte) consulta = consulta.lte('dt_costura', dataAte)
+    if (dataDe) consulta = consulta.gte('recebido_em', dataDe)
+    if (dataAte) consulta = consulta.lte('recebido_em', dataAte)
     if (filtroLider) consulta = consulta.eq('lider', filtroLider)
     if (filtroSupervisor) consulta = consulta.eq('supervisor', filtroSupervisor)
     if (filtroCoordenador) {
@@ -97,7 +97,7 @@ export default async function PaginaCosturas({
   const [respostaTabela, respostaResumo, { lideres, supervisores, coordenadores }] =
     await Promise.all([
       construirConsulta('*', { count: 'exact' })
-        .order('dt_costura', { ascending: true })
+        .order('recebido_em', { ascending: true })
         .range(inicio, fim)
         .returns<Costura[]>(),
       construirConsulta('quantidade_pagamento, status_pagamento').returns<
@@ -360,14 +360,16 @@ export default async function PaginaCosturas({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border text-xs uppercase text-ink/50">
             <tr>
-              <th className="px-4 py-3">Matrícula</th>
               <th className="px-4 py-3">Eletricista</th>
+              <th className="px-4 py-3">Matrícula</th>
               <th className="px-4 py-3">Prefixo</th>
               <th className="px-4 py-3">Líder</th>
+              <th className="px-4 py-3">Supervisor</th>
+              <th className="px-4 py-3">Coordenador</th>
               <th className="px-4 py-3">Recebido em</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pagamento</th>
-              <th className="px-4 py-3">Valor</th>
+              <th className="px-4 py-3">Pago por</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -377,12 +379,18 @@ export default async function PaginaCosturas({
                 key={costura.id}
                 className="border-b border-border last:border-0 hover:bg-surface"
               >
-                <td className="px-4 py-3 text-ink/70">{costura.matricula ?? '—'}</td>
                 <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
+                <td className="px-4 py-3 text-ink/70">{costura.matricula ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.prefixo ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.lider ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">
-                  {formatarDataBR(costura.dt_costura)}
+                  {costura.supervisor ?? '—'}
+                </td>
+                <td className="px-4 py-3 text-ink/70">
+                  {costura.coordenador ?? '—'}
+                </td>
+                <td className="px-4 py-3 text-ink/70">
+                  {formatarDataBR(costura.recebido_em)}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={costura.status_entrega} />
@@ -390,7 +398,9 @@ export default async function PaginaCosturas({
                 <td className="px-4 py-3">
                   <StatusPagamentoBadge status={costura.status_pagamento} />
                 </td>
-                <td className="px-4 py-3 text-ink/70">{costura.quantidade_pagamento?.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'}) ?? '—'}</td>
+                <td className="px-4 py-3 text-ink/70">
+                  {costura.pago_por ?? '—'}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
                     <Link

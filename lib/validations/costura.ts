@@ -28,7 +28,7 @@ export const costuraSchema = z.object({
 
   tipo_fardamento: z.string().trim().min(1, 'Informe o tipo de fardamento'),
   local_costura: z.string().trim().min(1, 'Informe o local de costura'),
-  dt_costura: z.string().min(1, 'Informe a data da costura'),
+  recebido_em: z.string().min(1, 'Informe a data da costura'),
   status_entrega: z.enum(STATUS_VALUES),
 
   // Os dois a seguir são opcionais de propósito: só fazem sentido

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     let consulta = supabase
       .from('costuras')
       .select('*')
-      .order('dt_costura', { ascending: true })
+      .order('recebido_em', { ascending: true })
 
     if (busca) {
       consulta = consulta.or(
@@ -43,8 +43,8 @@ export async function GET(request: NextRequest) {
     if (statusPagamento) {
       consulta = consulta.eq('status_pagamento', statusPagamento)
     }
-    if (dataDe) consulta = consulta.gte('dt_costura', dataDe)
-    if (dataAte) consulta = consulta.lte('dt_costura', dataAte)
+    if (dataDe) consulta = consulta.gte('recebido_em', dataDe)
+    if (dataAte) consulta = consulta.lte('recebido_em', dataAte)
     if (filtroLider) consulta = consulta.eq('lider', filtroLider)
     if (filtroSupervisor) consulta = consulta.eq('supervisor', filtroSupervisor)
     if (filtroCoordenador) {
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
     { header: 'Líder', key: 'lider', width: 18 },
     { header: 'Supervisor', key: 'supervisor', width: 18 },
     { header: 'Coordenador', key: 'coordenador', width: 18 },
-    { header: 'Dt Costura', key: 'dtCostura', width: 12 },
+    { header: 'Recebido em', key: 'recebidoEm', width: 12 },
     { header: 'Tipo de Fardamento', key: 'tipoFardamento', width: 18 },
     { header: 'Local de Costura', key: 'localCostura', width: 18 },
     { header: 'Status de Entrega', key: 'statusEntrega', width: 16 },
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       lider: c.lider ?? '',
       supervisor: c.supervisor ?? '',
       coordenador: c.coordenador ?? '',
-      dtCostura: formatarDataBR(c.dt_costura),
+      recebidoEm: formatarDataBR(c.recebido_em),
       tipoFardamento: c.tipo_fardamento,
       localCostura: c.local_costura,
       statusEntrega: STATUS_ENTREGA[c.status_entrega].label,

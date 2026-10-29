@@ -70,7 +70,7 @@ export type Costura = {
   quantidade_pagamento: number | null
   tipo_fardamento: string
   local_costura: string
-  dt_costura: string
+  recebido_em: string
   status_entrega: StatusEntrega
   // null quando não há preço definido — o campo "não se aplica"
   status_pagamento: StatusPagamento | null
