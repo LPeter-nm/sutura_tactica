@@ -405,7 +405,7 @@ export default async function PaginaCosturas({
                 <td className="px-4 py-3 text-ink/70">
                   {costura.pago_por ?? '—'}
                 </td>
-                <td className="px-4 py-3 text-ink/70">{costura.quantidade_pagamento ?? '—'}</td>
+                <td className="px-4 py-3 text-ink/70">{costura.quantidade_pagamento?.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'}) ?? '—'}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
                     <Link
