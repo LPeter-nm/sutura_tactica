@@ -360,16 +360,15 @@ export default async function PaginaCosturas({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border text-xs uppercase text-ink/50">
             <tr>
-              <th className="px-4 py-3">Eletricista</th>
               <th className="px-4 py-3">Matrícula</th>
+              <th className="px-4 py-3">Eletricista</th>
               <th className="px-4 py-3">Prefixo</th>
               <th className="px-4 py-3">Líder</th>
-              <th className="px-4 py-3">Supervisor</th>
-              <th className="px-4 py-3">Coordenador</th>
               <th className="px-4 py-3">Recebido em</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pagamento</th>
               <th className="px-4 py-3">Pago por</th>
+              <th className="px-4 py-3">Valor</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -379,16 +378,10 @@ export default async function PaginaCosturas({
                 key={costura.id}
                 className="border-b border-border last:border-0 hover:bg-surface"
               >
-                <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.matricula ?? '—'}</td>
+                <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.prefixo ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">{costura.lider ?? '—'}</td>
-                <td className="px-4 py-3 text-ink/70">
-                  {costura.supervisor ?? '—'}
-                </td>
-                <td className="px-4 py-3 text-ink/70">
-                  {costura.coordenador ?? '—'}
-                </td>
                 <td className="px-4 py-3 text-ink/70">
                   {formatarDataBR(costura.recebido_em)}
                 </td>
@@ -401,6 +394,7 @@ export default async function PaginaCosturas({
                 <td className="px-4 py-3 text-ink/70">
                   {costura.pago_por ?? '—'}
                 </td>
+                <td className="px-4 py-3 text-ink/70">{costura.quantidade_pagamento ?? '—'}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
                     <Link
