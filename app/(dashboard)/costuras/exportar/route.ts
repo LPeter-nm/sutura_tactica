@@ -20,6 +20,9 @@ export async function GET(request: NextRequest) {
   const filtroLider = searchParams.get('filtroLider') ?? undefined
   const filtroSupervisor = searchParams.get('filtroSupervisor') ?? undefined
   const filtroCoordenador = searchParams.get('filtroCoordenador') ?? undefined
+  const filtroPolo = searchParams.get('filtroPolo') ?? undefined
+  const filtroBase = searchParams.get('filtroBase') ?? undefined
+  const filtroProcesso = searchParams.get('filtroProcesso') ?? undefined
 
   const supabase = await createClient()
 
@@ -49,6 +52,11 @@ export async function GET(request: NextRequest) {
     if (filtroSupervisor) consulta = consulta.eq('supervisor', filtroSupervisor)
     if (filtroCoordenador) {
       consulta = consulta.eq('coordenador', filtroCoordenador)
+    }
+    if (filtroPolo) consulta = consulta.eq('polo', filtroPolo)
+    if (filtroBase) consulta = consulta.eq('base', filtroBase)
+    if (filtroProcesso) {
+      consulta = consulta.eq('processo_equipe', filtroProcesso)
     }
 
     return consulta
@@ -92,6 +100,9 @@ export async function GET(request: NextRequest) {
     { header: 'Líder', key: 'lider', width: 18 },
     { header: 'Supervisor', key: 'supervisor', width: 18 },
     { header: 'Coordenador', key: 'coordenador', width: 18 },
+    { header: 'Polo', key: 'polo', width: 16 },
+    { header: 'Base', key: 'base', width: 18 },
+    { header: 'Processo da Equipe', key: 'processoEquipe', width: 18 },
     { header: 'Recebido em', key: 'recebidoEm', width: 12 },
     { header: 'Tipo de Fardamento', key: 'tipoFardamento', width: 18 },
     { header: 'Local de Costura', key: 'localCostura', width: 18 },
@@ -109,6 +120,9 @@ export async function GET(request: NextRequest) {
       lider: c.lider ?? '',
       supervisor: c.supervisor ?? '',
       coordenador: c.coordenador ?? '',
+      polo: c.polo ?? '',
+      base: c.base ?? '',
+      processoEquipe: c.processo_equipe ?? '',
       recebidoEm: formatarDataBR(c.recebido_em),
       tipoFardamento: c.tipo_fardamento,
       localCostura: c.local_costura,

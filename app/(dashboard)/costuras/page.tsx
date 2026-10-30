@@ -9,6 +9,7 @@ import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
 import { AvisoSucesso } from '@/components/aviso-sucesso'
 import { BuscaAutomatica } from '@/components/busca-automatica'
 import { STATUS_ENTREGA, STATUS_PAGAMENTO, type Costura } from '@/types/costura'
+import { POLOS, BASES, PROCESSOS_EQUIPE } from '@/lib/organizacao'
 import {
   formatarDataBR,
   periodoHoje,
@@ -33,6 +34,9 @@ export default async function PaginaCosturas({
     filtroLider?: string
     filtroSupervisor?: string
     filtroCoordenador?: string
+    filtroPolo?: string
+    filtroBase?: string
+    filtroProcesso?: string
     pagina?: string
     sucesso?: string
   }>
@@ -46,6 +50,9 @@ export default async function PaginaCosturas({
     filtroLider,
     filtroSupervisor,
     filtroCoordenador,
+    filtroPolo,
+    filtroBase,
+    filtroProcesso,
     pagina,
     sucesso,
   } = await searchParams
@@ -80,6 +87,11 @@ export default async function PaginaCosturas({
     if (filtroSupervisor) consulta = consulta.eq('supervisor', filtroSupervisor)
     if (filtroCoordenador) {
       consulta = consulta.eq('coordenador', filtroCoordenador)
+    }
+    if (filtroPolo) consulta = consulta.eq('polo', filtroPolo)
+    if (filtroBase) consulta = consulta.eq('base', filtroBase)
+    if (filtroProcesso) {
+      consulta = consulta.eq('processo_equipe', filtroProcesso)
     }
 
     return consulta
@@ -135,6 +147,9 @@ export default async function PaginaCosturas({
       filtroLider,
       filtroSupervisor,
       filtroCoordenador,
+      filtroPolo,
+      filtroBase,
+      filtroProcesso,
       ...sobrescrever,
     }
     for (const [chave, valor] of Object.entries(atuais)) {
@@ -154,6 +169,9 @@ export default async function PaginaCosturas({
       filtroLider,
       filtroSupervisor,
       filtroCoordenador,
+      filtroPolo,
+      filtroBase,
+      filtroProcesso,
     })) {
       if (valor) params.set(chave, valor)
     }
@@ -279,6 +297,51 @@ export default async function PaginaCosturas({
           >
             <option value="">Todos</option>
             {coordenadores.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </CampoFiltro>
+
+        <CampoFiltro label="Polo">
+          <select
+            name="filtroPolo"
+            defaultValue={filtroPolo ?? ''}
+            className={estiloFiltro}
+          >
+            <option value="">Todos</option>
+            {POLOS.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </CampoFiltro>
+
+        <CampoFiltro label="Base">
+          <select
+            name="filtroBase"
+            defaultValue={filtroBase ?? ''}
+            className={estiloFiltro}
+          >
+            <option value="">Todos</option>
+            {BASES.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </CampoFiltro>
+
+        <CampoFiltro label="Processo da equipe">
+          <select
+            name="filtroProcesso"
+            defaultValue={filtroProcesso ?? ''}
+            className={estiloFiltro}
+          >
+            <option value="">Todos</option>
+            {PROCESSOS_EQUIPE.map((nome) => (
               <option key={nome} value={nome}>
                 {nome}
               </option>
