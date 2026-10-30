@@ -7,6 +7,8 @@ export type Fiscal = {
   nome: string
   supervisor: string
   coordenador: string
+  polo: string | null
+  base: string | null
   created_at: string
   updated_at: string
 }
