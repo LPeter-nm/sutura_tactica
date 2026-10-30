@@ -40,7 +40,7 @@ export default async function LayoutDashboard({
       <Sidebar admin={admin} />
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-end gap-4 border-b border-border bg-card px-6 py-3 text-sm">
+        <header className="flex items-center justify-end gap-4 border-b border-border bg-card py-3 pl-16 pr-4 text-sm sm:px-6">
           <span className="text-ink/60">{user?.email}</span>
           <ThemeToggle />
           <form action={sair}>
@@ -53,7 +53,7 @@ export default async function LayoutDashboard({
           </form>
         </header>
 
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>
   )

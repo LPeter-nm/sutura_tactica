@@ -50,7 +50,7 @@ export function FiscalForm({ valoresIniciais, aoSalvar, textoBotao }: FiscalForm
         <input {...register('coordenador')} className={estiloInput} />
       </Campo>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Campo label="Polo" erro={errors.polo?.message}>
           <select {...register('polo')} className={estiloInput}>
             <option value="">Selecione</option>

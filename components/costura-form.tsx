@@ -140,7 +140,7 @@ export function CosturaForm({
 
   return (
     <form onSubmit={handleSubmit(aoEnviar)} className="max-w-xl space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Campo
           label="Nome do eletricista"
           erro={errors.eletricista_nome?.message}
@@ -191,7 +191,7 @@ export function CosturaForm({
         />
       </Campo>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Campo label="Líder" erro={errors.lider?.message}>
           <select {...register('lider')} className={estiloInput}>
             <option value="">Selecione</option>
@@ -224,7 +224,7 @@ export function CosturaForm({
         </Campo>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Campo label="Polo" erro={errors.polo?.message}>
           <select {...register('polo')} className={estiloInput}>
             <option value="">Selecione</option>
@@ -257,7 +257,7 @@ export function CosturaForm({
         </Campo>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Campo label="Tipo de fardamento" erro={errors.tipo_fardamento?.message}>
           <input {...register('tipo_fardamento')} className={estiloInput} />
         </Campo>
@@ -266,7 +266,7 @@ export function CosturaForm({
         </Campo>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Campo label="Recebido em" erro={errors.recebido_em?.message}>
           <input type="date" {...register('recebido_em')} className={estiloInput} />
         </Campo>
@@ -286,7 +286,7 @@ export function CosturaForm({
       </div>
 
       {temPreco && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Campo
             label="Status de pagamento"
             erro={errors.status_pagamento?.message}
