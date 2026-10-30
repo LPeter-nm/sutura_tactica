@@ -28,6 +28,9 @@ export function CosturaDetalhes({
         <Campo rotulo="Líder" valor={costura.lider ?? '—'} />
         <Campo rotulo="Supervisor" valor={costura.supervisor ?? '—'} />
         <Campo rotulo="Coordenador" valor={costura.coordenador ?? '—'} />
+        <Campo rotulo="Polo" valor={costura.polo ?? '—'} />
+        <Campo rotulo="Base" valor={costura.base ?? '—'} />
+        <Campo rotulo="Processo da equipe" valor={costura.processo_equipe ?? '—'} />
         <Campo rotulo="Tipo de fardamento" valor={costura.tipo_fardamento} />
         <Campo rotulo="Local de costura" valor={costura.local_costura} />
         <Campo rotulo="Recebido em" valor={formatarDataBR(costura.recebido_em)} />

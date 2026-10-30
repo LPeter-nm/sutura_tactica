@@ -9,15 +9,18 @@ import { STATUS_ENTREGA, STATUS_PAGAMENTO } from '@/types/costura'
 import { useToast } from '@/components/toast-provider'
 import type { Fiscal } from '@/lib/fiscais'
 import type { Eletricista } from '@/lib/eletricistas'
+import { POLOS, BASES, PROCESSOS_EQUIPE } from '@/lib/organizacao'
 
 type CosturaFormProps = {
   valoresIniciais?: Partial<CosturaFormValues>
-  // Vem do banco agora (tabela "fiscais"), buscado pela página que
-  // usa este formulário — não mais de uma lista fixa no código. Por
-  // isso quem chama <CosturaForm> precisa passar essa prop.
+  // Vem do banco (tabela "fiscais") — hoje, só alimenta as opções
+  // dos selects de líder/supervisor/coordenador. Quem decide o que
+  // preencher automaticamente é o eletricista escolhido, não mais
+  // o líder escolhido.
   fiscais: Fiscal[]
-  // Mesma ideia, pra matrícula e prefixo se preencherem sozinhos ao
-  // digitar um nome já cadastrado.
+  // A fonte de verdade do preenchimento automático: escolher um
+  // nome aqui preenche matrícula, prefixo, líder, supervisor,
+  // coordenador, polo, base e processo da equipe, todos de uma vez.
   eletricistas: Eletricista[]
   // Esta prop recebe diretamente uma Server Action (de verdade, uma
   // função marcada "use server" lá no arquivo actions.ts — ou essa
@@ -40,38 +43,36 @@ export function CosturaForm({
 
   // Tudo que os selects precisam sai de UMA fonte só — a lista de
   // fiscais que a página buscou no banco. useMemo evita recalcular
-  // essas quatro listas a cada letra digitada em outro campo do
-  // formulário, já que "fiscais" só muda quando a página é recarregada.
-  const { lideres, supervisores, coordenadores, pessoasPagamento, equipePorLider } =
-    useMemo(() => {
-      const supervisoresUnicos = new Set<string>()
-      const coordenadoresUnicos = new Set<string>()
-      const pessoasUnicas = new Set<string>()
-      const equipe: Record<string, { supervisor: string; coordenador: string }> = {}
+  // essas listas a cada letra digitada em outro campo do formulário,
+  // já que "fiscais" só muda quando a página é recarregada.
+  //
+  // Diferente de antes, nenhuma dessas listas dispara preenchimento
+  // automático sozinha — elas só fornecem as OPÇÕES dos selects. Quem
+  // decide o que preencher agora é só o eletricista escolhido, logo
+  // abaixo.
+  const { lideres, supervisores, coordenadores, pessoasPagamento } = useMemo(() => {
+    const supervisoresUnicos = new Set<string>()
+    const coordenadoresUnicos = new Set<string>()
+    const pessoasUnicas = new Set<string>()
 
-      for (const fiscal of fiscais) {
-        supervisoresUnicos.add(fiscal.supervisor)
-        coordenadoresUnicos.add(fiscal.coordenador)
-        pessoasUnicas.add(fiscal.nome)
-        pessoasUnicas.add(fiscal.supervisor)
-        pessoasUnicas.add(fiscal.coordenador)
-        equipe[fiscal.nome] = {
-          supervisor: fiscal.supervisor,
-          coordenador: fiscal.coordenador,
-        }
-      }
+    for (const fiscal of fiscais) {
+      supervisoresUnicos.add(fiscal.supervisor)
+      coordenadoresUnicos.add(fiscal.coordenador)
+      pessoasUnicas.add(fiscal.nome)
+      pessoasUnicas.add(fiscal.supervisor)
+      pessoasUnicas.add(fiscal.coordenador)
+    }
 
-      const ordenar = (valores: Set<string>) =>
-        Array.from(valores).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+    const ordenar = (valores: Set<string>) =>
+      Array.from(valores).sort((a, b) => a.localeCompare(b, 'pt-BR'))
 
-      return {
-        lideres: ordenar(new Set(fiscais.map((f) => f.nome))),
-        supervisores: ordenar(supervisoresUnicos),
-        coordenadores: ordenar(coordenadoresUnicos),
-        pessoasPagamento: ordenar(pessoasUnicas),
-        equipePorLider: equipe,
-      }
-    }, [fiscais])
+    return {
+      lideres: ordenar(new Set(fiscais.map((f) => f.nome))),
+      supervisores: ordenar(supervisoresUnicos),
+      coordenadores: ordenar(coordenadoresUnicos),
+      pessoasPagamento: ordenar(pessoasUnicas),
+    }
+  }, [fiscais])
 
   // Mesmo princípio dos fiscais: um mapa pronto, nome → {matrícula,
   // prefixo}, pra consultar em O(1) a cada letra digitada, sem
@@ -104,12 +105,12 @@ export function CosturaForm({
   // pra aparecer ou sumir.
   const temPreco = !!watch('quantidade_pagamento')
 
-  // Guardamos o retorno de register('lider') numa variável, em vez
-  // de espalhar {...register('lider')} direto no JSX, porque
-  // precisamos do onChange original dele — pra chamar a mão, dentro
-  // do NOSSO onChange, que faz o preenchimento automático de
-  // supervisor/coordenador logo abaixo.
-  const registroLider = register('lider')
+  // Guardamos o retorno de register('eletricista_nome') numa
+  // variável, em vez de espalhar {...register(...)} direto no JSX,
+  // porque precisamos do onChange original dele — pra chamar à mão,
+  // dentro do NOSSO onChange, que agora faz TODO o preenchimento
+  // automático: matrícula, prefixo, líder, supervisor, coordenador,
+  // polo, base e processo da equipe, tudo de uma vez.
   const registroEletricista = register('eletricista_nome')
 
   // "Pago por" é um select, mas com uma porta de saída: se o nome
@@ -153,10 +154,20 @@ export function CosturaForm({
               registroEletricista.onChange(evento)
 
               const eletricista = eletricistaPorNome[evento.target.value]
-              if (eletricista) {
-                setValue('matricula', eletricista.matricula)
-                setValue('prefixo', eletricista.prefixo ?? '')
-              }
+              if (!eletricista) return
+
+              setValue('matricula', eletricista.matricula)
+              setValue('prefixo', eletricista.prefixo ?? '')
+              // Líder pode vir vazio de propósito — nem todo
+              // eletricista tem um nome de pessoa aqui na planilha
+              // original, alguns só têm um rótulo genérico de
+              // equipe, que não faz sentido tratar como um líder.
+              setValue('lider', eletricista.lider ?? '')
+              setValue('supervisor', eletricista.supervisor ?? '')
+              setValue('coordenador', eletricista.coordenador ?? '')
+              setValue('polo', eletricista.polo ?? '')
+              setValue('base', eletricista.base ?? '')
+              setValue('processo_equipe', eletricista.processo_equipe ?? '')
             }}
             list="lista-eletricistas"
             className={estiloInput}
@@ -182,28 +193,7 @@ export function CosturaForm({
 
       <div className="grid grid-cols-3 gap-4">
         <Campo label="Líder" erro={errors.lider?.message}>
-          <select
-            {...registroLider}
-            onChange={(evento) => {
-              // Mantém o próprio formulário sabendo do novo valor —
-              // sem isso, o react-hook-form nunca ficaria sabendo que
-              // o campo mudou.
-              registroLider.onChange(evento)
-
-              const nomeEscolhido = evento.target.value
-              if (!nomeEscolhido) return
-
-              // Cada fiscal, na tabela, tem exatamente um supervisor
-              // e um coordenador — então, diferente de antes, não
-              // existe mais caso ambíguo pra tratar aqui.
-              const equipe = equipePorLider[nomeEscolhido]
-              if (equipe) {
-                setValue('supervisor', equipe.supervisor)
-                setValue('coordenador', equipe.coordenador)
-              }
-            }}
-            className={estiloInput}
-          >
+          <select {...register('lider')} className={estiloInput}>
             <option value="">Selecione</option>
             {lideres.map((nome) => (
               <option key={nome} value={nome}>
@@ -226,6 +216,39 @@ export function CosturaForm({
           <select {...register('coordenador')} className={estiloInput}>
             <option value="">Selecione</option>
             {coordenadores.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </Campo>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <Campo label="Polo" erro={errors.polo?.message}>
+          <select {...register('polo')} className={estiloInput}>
+            <option value="">Selecione</option>
+            {POLOS.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </Campo>
+        <Campo label="Base" erro={errors.base?.message}>
+          <select {...register('base')} className={estiloInput}>
+            <option value="">Selecione</option>
+            {BASES.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </Campo>
+        <Campo label="Processo da equipe" erro={errors.processo_equipe?.message}>
+          <select {...register('processo_equipe')} className={estiloInput}>
+            <option value="">Selecione</option>
+            {PROCESSOS_EQUIPE.map((nome) => (
               <option key={nome} value={nome}>
                 {nome}
               </option>

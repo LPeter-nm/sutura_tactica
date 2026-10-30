@@ -15,6 +15,9 @@ export const costuraSchema = z.object({
   lider: z.string().trim().optional(),
   supervisor: z.string().trim().optional(),
   coordenador: z.string().trim().optional(),
+  polo: z.string().trim().optional(),
+  base: z.string().trim().optional(),
+  processo_equipe: z.string().trim().optional(),
 
   // Fica como texto mesmo — é o que um <input> entrega. A conversão
   // pra número só acontece depois, na hora de salvar no banco

@@ -67,6 +67,9 @@ export type Costura = {
   lider: string | null
   supervisor: string | null
   coordenador: string | null
+  polo: string | null
+  base: string | null
+  processo_equipe: string | null
   quantidade_pagamento: number | null
   tipo_fardamento: string
   local_costura: string
