@@ -29,6 +29,8 @@ export default async function PaginaEditarFiscal({
           nome: fiscal.nome,
           supervisor: fiscal.supervisor,
           coordenador: fiscal.coordenador,
+          polo: fiscal.polo ?? '',
+          base: fiscal.base ?? '',
         }}
         aoSalvar={salvarComId}
         textoBotao="Salvar alterações"

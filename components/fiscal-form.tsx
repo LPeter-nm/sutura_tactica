@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fiscalSchema, type FiscalFormValues } from '@/lib/validations/fiscal'
 import { useToast } from '@/components/toast-provider'
+import { POLOS, BASES } from '@/lib/organizacao'
 
 type FiscalFormProps = {
   valoresIniciais?: Partial<FiscalFormValues>
@@ -48,6 +49,29 @@ export function FiscalForm({ valoresIniciais, aoSalvar, textoBotao }: FiscalForm
       <Campo label="Coordenador" erro={errors.coordenador?.message}>
         <input {...register('coordenador')} className={estiloInput} />
       </Campo>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Campo label="Polo" erro={errors.polo?.message}>
+          <select {...register('polo')} className={estiloInput}>
+            <option value="">Selecione</option>
+            {POLOS.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </Campo>
+        <Campo label="Base" erro={errors.base?.message}>
+          <select {...register('base')} className={estiloInput}>
+            <option value="">Selecione</option>
+            {BASES.map((nome) => (
+              <option key={nome} value={nome}>
+                {nome}
+              </option>
+            ))}
+          </select>
+        </Campo>
+      </div>
 
       <button
         type="submit"

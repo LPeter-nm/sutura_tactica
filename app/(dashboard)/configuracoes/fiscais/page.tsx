@@ -13,7 +13,7 @@ export default async function PaginaEquipe() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-ink">Fiscais</h1>
+          <h1 className="text-lg font-semibold text-ink">Equipe</h1>
         </div>
         <Link
           href="/configuracoes/fiscais/novo"
@@ -30,6 +30,8 @@ export default async function PaginaEquipe() {
               <th className="px-4 py-3">Fiscal</th>
               <th className="px-4 py-3">Supervisor</th>
               <th className="px-4 py-3">Coordenador</th>
+              <th className="px-4 py-3">Polo</th>
+              <th className="px-4 py-3">Base</th>
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
@@ -42,6 +44,8 @@ export default async function PaginaEquipe() {
                 <td className="px-4 py-3 text-ink">{fiscal.nome}</td>
                 <td className="px-4 py-3 text-ink/70">{fiscal.supervisor}</td>
                 <td className="px-4 py-3 text-ink/70">{fiscal.coordenador}</td>
+                <td className="px-4 py-3 text-ink/70">{fiscal.polo ?? '—'}</td>
+                <td className="px-4 py-3 text-ink/70">{fiscal.base ?? '—'}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">
                     <Link
@@ -62,7 +66,7 @@ export default async function PaginaEquipe() {
 
             {fiscais.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-ink/50">
+                <td colSpan={6} className="px-4 py-6 text-center text-ink/50">
                   Nenhum fiscal cadastrado ainda.
                 </td>
               </tr>
