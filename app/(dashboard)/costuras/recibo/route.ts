@@ -124,14 +124,14 @@ export async function GET(request: NextRequest) {
     .font('Helvetica')
     .fontSize(16)
     .fillColor(INK)
-    .text('Recibo de Costuras', margemEsquerda, margemEsquerda, {
+    .text('Recibo para Pagamento de Costuras', margemEsquerda, margemEsquerda, {
       width: larguraTexto,
       align: 'right',
     })
   doc
     .fontSize(11)
     .fillColor(INK_SUAVE)
-    .text('Costuras Realizadas a Pedido do Líder/Supervisor', margemEsquerda, doc.y, {
+    .text('Costuras Realizadas a Pedido do Líder ou Supervisor', margemEsquerda, doc.y, {
       width: larguraTexto,
       align: 'right',
     })
@@ -271,7 +271,7 @@ export async function GET(request: NextRequest) {
     .text(`${formatar(totalPendente)} `, { continued: true })
     .font('Helvetica')
     .text(
-      `refere-se ao valor total das costuras de fardamento realizadas para os eletricistas do coordenador `,
+      `refere-se ao valor total a ser pago das costuras de fardamento realizadas para os eletricistas do coordenador `,
       { continued: true }
     )
     .font('Helvetica-Bold')
