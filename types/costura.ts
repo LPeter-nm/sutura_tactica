@@ -56,6 +56,24 @@ export const STATUS_PAGAMENTO: Record<
   },
 }
 
+// Um item de fardamento é uma LINHA À PARTE, ligada à costura — uma
+// costura pode ter vários (ex: "2 calças e 1 camisa"), por isso não
+// é mais um campo de texto solto na própria costura.
+export const TIPOS_FARDAMENTO = ['camisa', 'calca'] as const
+export type TipoFardamento = (typeof TIPOS_FARDAMENTO)[number]
+
+export const TIPO_FARDAMENTO_LABEL: Record<TipoFardamento, string> = {
+  camisa: 'Camisa',
+  calca: 'Calça',
+}
+
+export type ItemFardamento = {
+  id: string
+  costura_id: string
+  tipo: TipoFardamento
+  quantidade: number
+}
+
 // O formato de uma linha da tabela "costuras", exatamente como ela
 // volta do Supabase.
 export type Costura = {
@@ -71,7 +89,6 @@ export type Costura = {
   base: string | null
   processo_equipe: string | null
   quantidade_pagamento: number | null
-  tipo_fardamento: string
   local_costura: string
   recebido_em: string
   status_entrega: StatusEntrega

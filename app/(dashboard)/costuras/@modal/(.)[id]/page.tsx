@@ -1,6 +1,8 @@
+// app/(dashboard)/costuras/@modal/(.)[id]/page.tsx
+
 import { notFound } from 'next/navigation'
 import { Modal } from '@/components/modal'
-import { buscarCostura, buscarHistoricoCostura } from '@/lib/costuras'
+import { buscarCostura, buscarHistoricoCostura, buscarItensFardamento } from '@/lib/costuras'
 import { CosturaDetalhes } from '@/components/costura-detalhes'
 
 export default async function ModalDetalheCostura({
@@ -15,11 +17,14 @@ export default async function ModalDetalheCostura({
     notFound()
   }
 
-  const historico = await buscarHistoricoCostura(id)
+  const [historico, itens] = await Promise.all([
+    buscarHistoricoCostura(id),
+    buscarItensFardamento(id),
+  ])
 
   return (
     <Modal>
-      <CosturaDetalhes costura={costura} historico={historico} />
+      <CosturaDetalhes costura={costura} historico={historico} itens={itens} />
     </Modal>
   )
 }

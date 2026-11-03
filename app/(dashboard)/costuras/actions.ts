@@ -43,21 +43,44 @@ export async function criarCostura(valores: CosturaFormValues) {
     return { erro: 'Dados inválidos. Confira os campos e tente novamente.' }
   }
 
-  const quantidade = paraNumeroOuNulo(dados.data.quantidade_pagamento)
+  // "itens" não é uma coluna da tabela costuras — fica de fora do
+  // insert principal, e vai pra sua própria tabela logo abaixo.
+  const { itens, ...dadosCostura } = dados.data
+  const quantidade = paraNumeroOuNulo(dadosCostura.quantidade_pagamento)
 
   const supabase = await createClient()
-  const { error } = await supabase.from('costuras').insert({
-    ...dados.data,
-    quantidade_pagamento: quantidade,
-    status_pagamento: determinarStatusPagamento(
-      quantidade,
-      dados.data.status_pagamento
-    ),
-    pago_por: determinarPagoPor(quantidade, dados.data.pago_por),
-  })
 
-  if (error) {
+  const { data: novaCostura, error } = await supabase
+    .from('costuras')
+    .insert({
+      ...dadosCostura,
+      quantidade_pagamento: quantidade,
+      status_pagamento: determinarStatusPagamento(
+        quantidade,
+        dadosCostura.status_pagamento
+      ),
+      pago_por: determinarPagoPor(quantidade, dadosCostura.pago_por),
+    })
+    .select('id')
+    .single()
+
+  if (error || !novaCostura) {
     return { erro: 'Não foi possível salvar. Tente novamente.' }
+  }
+
+  const { error: erroItens } = await supabase.from('itens_fardamento').insert(
+    itens.map((item) => ({
+      costura_id: novaCostura.id,
+      tipo: item.tipo,
+      quantidade: Number(item.quantidade),
+    }))
+  )
+
+  if (erroItens) {
+    return {
+      erro:
+        'A costura foi criada, mas os itens de fardamento não puderam ser salvos. Edite a costura para adicioná-los.',
+    }
   }
 
   // Avisa ao Next.js que a lista de costuras mudou, pra ele não
@@ -73,24 +96,51 @@ export async function atualizarCostura(id: string, valores: CosturaFormValues) {
     return { erro: 'Dados inválidos. Confira os campos e tente novamente.' }
   }
 
-  const quantidade = paraNumeroOuNulo(dados.data.quantidade_pagamento)
+  const { itens, ...dadosCostura } = dados.data
+  const quantidade = paraNumeroOuNulo(dadosCostura.quantidade_pagamento)
 
   const supabase = await createClient()
+
   const { error } = await supabase
     .from('costuras')
     .update({
-      ...dados.data,
+      ...dadosCostura,
       quantidade_pagamento: quantidade,
       status_pagamento: determinarStatusPagamento(
         quantidade,
-        dados.data.status_pagamento
+        dadosCostura.status_pagamento
       ),
-      pago_por: determinarPagoPor(quantidade, dados.data.pago_por),
+      pago_por: determinarPagoPor(quantidade, dadosCostura.pago_por),
     })
     .eq('id', id)
 
   if (error) {
     return { erro: 'Não foi possível atualizar. Tente novamente.' }
+  }
+
+  // Jeito mais simples de "sincronizar" os itens numa edição: apaga
+  // todos os que já existiam pra essa costura e insere o conjunto
+  // novo inteiro. Não é o mais eficiente possível, mas é direto o
+  // bastante pra nunca ficar um item órfão ou duplicado por engano.
+  const { error: erroRemover } = await supabase
+    .from('itens_fardamento')
+    .delete()
+    .eq('costura_id', id)
+
+  if (erroRemover) {
+    return { erro: 'Não foi possível atualizar os itens de fardamento.' }
+  }
+
+  const { error: erroItens } = await supabase.from('itens_fardamento').insert(
+    itens.map((item) => ({
+      costura_id: id,
+      tipo: item.tipo,
+      quantidade: Number(item.quantidade),
+    }))
+  )
+
+  if (erroItens) {
+    return { erro: 'Não foi possível salvar os itens de fardamento.' }
   }
 
   revalidatePath('/costuras')

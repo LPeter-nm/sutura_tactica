@@ -3,9 +3,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import PDFDocument from 'pdfkit'
 import { createClient } from '@/lib/supabase/server'
-import type { Costura } from '@/types/costura'
+import type { Costura, TipoFardamento } from '@/types/costura'
 import { formatarDataBR } from '@/lib/datas'
+import { resumoFardamento } from '@/lib/fardamento'
 import { logoDplBuffer } from '@/lib/logo-dpl'
+
+type CosturaComItens = Costura & {
+  itens_fardamento: { tipo: TipoFardamento; quantidade: number }[]
+}
 
 const INK = '#1A1A1A'
 const INK_SUAVE = '#5A5A5A'
@@ -27,7 +32,7 @@ export async function GET(request: NextRequest) {
 
   let consulta = supabase
     .from('costuras')
-    .select('*')
+    .select('*, itens_fardamento(tipo, quantidade)')
     .eq('coordenador', coordenador)
     // Só entram costuras com valor definido e ainda pendentes de
     // pagamento — sem preço, ou já pagas, não fazem parte de um
@@ -39,7 +44,7 @@ export async function GET(request: NextRequest) {
   if (dataDe) consulta = consulta.gte('recebido_em', dataDe)
   if (dataAte) consulta = consulta.lte('recebido_em', dataAte)
 
-  const { data, error } = await consulta.returns<Costura[]>()
+  const { data, error } = await consulta.returns<CosturaComItens[]>()
   if (error) {
     console.error('Erro ao gerar recibo:', error.message)
   }
@@ -79,14 +84,14 @@ export async function GET(request: NextRequest) {
     .font('Helvetica')
     .fontSize(16)
     .fillColor(INK)
-    .text('Recibo de Costuras para Pagamento', margemEsquerda, margemEsquerda, {
+    .text('Recibo de Costuras', margemEsquerda, margemEsquerda, {
       width: larguraTexto,
       align: 'right',
     })
   doc
     .fontSize(11)
     .fillColor(INK_SUAVE)
-    .text('Costuras para Eletricistas sob Pedido do Líder', margemEsquerda, doc.y, {
+    .text('Costuras Realizadas a Pedido do Líder/Supervisor', margemEsquerda, doc.y, {
       width: larguraTexto,
       align: 'right',
     })
@@ -104,10 +109,13 @@ export async function GET(request: NextRequest) {
       `Especificam-se, a seguir, as costuras de fardamento realizadas para os eletricistas sob a coordenação de `,
       margemEsquerda,
       doc.y,
-      { width: larguraTexto, align: 'justify', continued: true} 
+      { width: larguraTexto, align: 'justify', continued: true }
     )
     .font('Helvetica-Bold')
-    .text(`${coordenador}:`)
+    .text(
+      `${coordenador}:`
+    )
+
   let y = doc.y + 12
 
   let totalPendente = 0
@@ -133,14 +141,14 @@ export async function GET(request: NextRequest) {
       { texto: matriculaTexto, negrito: true },
       { texto: ', sob liderança de ' },
       { texto: nomeLider, negrito: true },
-      { texto: ', tendo sido recebido ' },
-      { texto: `${costura.tipo_fardamento} `, negrito: true },
+      { texto: ', tendo sido recebido o(s) fardamento(s): ' },
+      { texto: `${resumoFardamento(costura.itens_fardamento ?? [])}`, negrito: true },
       {
-        texto: `em ${formatarDataBR(
+        texto: `, em ${formatarDataBR(
           costura.recebido_em
-        )} e atribuído o valor de`,
+        )} e foi atribuído o valor de `,
       },
-      { texto: ` ${valorTexto} `, negrito: true}, 
+      { texto: `${valorTexto} `, negrito: true},
       { texto: 'para a reparação.'}
     ]
 
@@ -210,12 +218,13 @@ export async function GET(request: NextRequest) {
     .text(`${formatar(totalPendente)} `, { continued: true })
     .font('Helvetica')
     .text(
-      'refere-se ao valor total das costuras de fardamento realizadas para os eletricistas mencionados sob a coordenação de ',
+      `refere-se ao valor total das costuras de fardamento realizadas para os eletricistas do coordenador `,
       { continued: true }
     )
     .font('Helvetica-Bold')
-    .text(`${coordenador}.`)
-
+    .text(
+      `${coordenador}.`
+    )
 
   // ---- Assinatura, ancorada perto do rodapé da página ----
   // Reservei mais espaço do que antes (100, não 60) porque agora o

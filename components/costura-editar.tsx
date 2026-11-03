@@ -2,7 +2,7 @@
 
 import { CosturaForm } from '@/components/costura-form'
 import { atualizarCostura } from '@/app/(dashboard)/costuras/actions'
-import type { Costura } from '@/types/costura'
+import type { Costura, ItemFardamento } from '@/types/costura'
 import type { Fiscal } from '@/lib/fiscais'
 import type { Eletricista } from '@/lib/eletricistas'
 
@@ -10,10 +10,12 @@ export function CosturaEditar({
   costura,
   fiscais,
   eletricistas,
+  itens,
 }: {
   costura: Costura
   fiscais: Fiscal[]
   eletricistas: Eletricista[]
+  itens: ItemFardamento[]
 }) {
   // .bind(null, costura.id) prende o id a esta cópia da função — o
   // formulário recebe algo pronto pra chamar, sem precisar saber
@@ -39,12 +41,20 @@ export function CosturaEditar({
           base: costura.base ?? '',
           processo_equipe: costura.processo_equipe ?? '',
           quantidade_pagamento: costura.quantidade_pagamento?.toString() ?? '',
-          tipo_fardamento: costura.tipo_fardamento,
           local_costura: costura.local_costura,
           recebido_em: costura.recebido_em,
           status_entrega: costura.status_entrega,
           status_pagamento: costura.status_pagamento ?? 'pendente',
           pago_por: costura.pago_por ?? '',
+          // O formulário trata quantidade como texto (mesmo motivo
+          // de quantidade_pagamento) — por isso o .toString() aqui.
+          itens:
+            itens.length > 0
+              ? itens.map((item) => ({
+                  tipo: item.tipo,
+                  quantidade: item.quantidade.toString(),
+                }))
+              : [{ tipo: 'camisa', quantidade: '1' }],
         }}
         aoSalvar={salvarComId}
         textoBotao="Salvar alterações"

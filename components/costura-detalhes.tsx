@@ -2,16 +2,19 @@
 
 import Link from 'next/link'
 import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
-import type { Costura } from '@/types/costura'
+import type { Costura, ItemFardamento } from '@/types/costura'
 import type { LinhaHistorico } from '@/lib/costuras'
 import { formatarDataBR } from '@/lib/datas'
+import { resumoFardamento } from '@/lib/fardamento'
 
 export function CosturaDetalhes({
   costura,
   historico,
+  itens,
 }: {
   costura: Costura
   historico: LinhaHistorico[]
+  itens: ItemFardamento[]
 }) {
   return (
     <div className="space-y-6">
@@ -31,7 +34,7 @@ export function CosturaDetalhes({
         <Campo rotulo="Polo" valor={costura.polo ?? '—'} />
         <Campo rotulo="Base" valor={costura.base ?? '—'} />
         <Campo rotulo="Processo da equipe" valor={costura.processo_equipe ?? '—'} />
-        <Campo rotulo="Tipo de fardamento" valor={costura.tipo_fardamento} />
+        <Campo rotulo="Fardamento" valor={resumoFardamento(itens)} />
         <Campo rotulo="Local de costura" valor={costura.local_costura} />
         <Campo rotulo="Recebido em" valor={formatarDataBR(costura.recebido_em)} />
         <Campo

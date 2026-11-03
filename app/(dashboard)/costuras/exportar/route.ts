@@ -3,8 +3,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import ExcelJS from 'exceljs'
 import { createClient } from '@/lib/supabase/server'
-import { STATUS_ENTREGA, STATUS_PAGAMENTO, type Costura } from '@/types/costura'
+import {
+  STATUS_ENTREGA,
+  STATUS_PAGAMENTO,
+  type Costura,
+  type TipoFardamento,
+} from '@/types/costura'
 import { formatarDataBR } from '@/lib/datas'
+import { resumoFardamento } from '@/lib/fardamento'
+
+// Cada costura, nesta consulta, vem acompanhada dos seus itens de
+// fardamento — "itens_fardamento(tipo, quantidade)" dentro do select
+// pede ao PostgREST pra já trazer essa tabela filha embutida, numa
+// consulta só, em vez de buscar os itens de cada costura depois,
+// um por um.
+type CosturaComItens = Costura & {
+  itens_fardamento: { tipo: TipoFardamento; quantidade: number }[]
+}
 
 // route.ts não é uma página — é um endpoint puro. Em vez de devolver
 // HTML, ele devolve bytes de um arquivo .xlsx de verdade, prontos
@@ -34,7 +49,7 @@ export async function GET(request: NextRequest) {
   function construirConsulta() {
     let consulta = supabase
       .from('costuras')
-      .select('*')
+      .select('*, itens_fardamento(tipo, quantidade)')
       .order('recebido_em', { ascending: true })
 
     if (busca) {
@@ -68,7 +83,7 @@ export async function GET(request: NextRequest) {
   // em "páginas" de 1000, uma atrás da outra, até uma página voltar
   // com menos de 1000 — sinal de que já pegamos tudo.
   const TAMANHO_PAGINA = 1000
-  const costuras: Costura[] = []
+  const costuras: CosturaComItens[] = []
   let pagina = 0
 
   while (true) {
@@ -77,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     const { data } = await construirConsulta()
       .range(inicio, fim)
-      .returns<Costura[]>()
+      .returns<CosturaComItens[]>()
 
     if (!data || data.length === 0) break
 
@@ -104,7 +119,7 @@ export async function GET(request: NextRequest) {
     { header: 'Base', key: 'base', width: 18 },
     { header: 'Processo da Equipe', key: 'processoEquipe', width: 18 },
     { header: 'Recebido em', key: 'recebidoEm', width: 12 },
-    { header: 'Tipo de Fardamento', key: 'tipoFardamento', width: 18 },
+    { header: 'Fardamento', key: 'fardamento', width: 22 },
     { header: 'Local de Costura', key: 'localCostura', width: 18 },
     { header: 'Status de Entrega', key: 'statusEntrega', width: 16 },
     { header: 'Quantidade a Pagar', key: 'quantidadePagamento', width: 16 },
@@ -124,7 +139,7 @@ export async function GET(request: NextRequest) {
       base: c.base ?? '',
       processoEquipe: c.processo_equipe ?? '',
       recebidoEm: formatarDataBR(c.recebido_em),
-      tipoFardamento: c.tipo_fardamento,
+      fardamento: resumoFardamento(c.itens_fardamento ?? []),
       localCostura: c.local_costura,
       statusEntrega: STATUS_ENTREGA[c.status_entrega].label,
       quantidadePagamento: c.quantidade_pagamento ?? '',
@@ -179,7 +194,7 @@ export async function GET(request: NextRequest) {
 
   const buffer = await livro.xlsx.writeBuffer()
 
-  return new NextResponse(buffer, {
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
       'Content-Type':
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

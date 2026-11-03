@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { Costura, StatusEntrega } from '@/types/costura'
+import type { Costura, ItemFardamento, StatusEntrega } from '@/types/costura'
 
 export async function buscarCostura(id: string) {
   const supabase = await createClient()
@@ -42,6 +42,22 @@ export async function buscarOpcoesDeFiltro() {
     supervisores: unicos('supervisor'),
     coordenadores: unicos('coordenador'),
   }
+}
+
+export async function buscarItensFardamento(costuraId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('itens_fardamento')
+    .select('id, costura_id, tipo, quantidade')
+    .eq('costura_id', costuraId)
+    .order('tipo')
+    .returns<ItemFardamento[]>()
+
+  if (error) {
+    console.error('Erro ao buscar itens de fardamento:', error.message)
+  }
+
+  return data ?? []
 }
 
 export async function buscarHistoricoCostura(id: string) {

@@ -1,31 +1,29 @@
-// app/(dashboard)/costuras/[id]/editar/page.tsx
+// app/(dashboard)/costuras/[id]/page.tsx
 
 import { notFound } from 'next/navigation'
-import { buscarCostura } from '@/lib/costuras'
-import { buscarFiscais } from '@/lib/fiscais'
-import { buscarEletricistas } from '@/lib/eletricistas'
-import { CosturaEditar } from '@/components/costura-editar'
+import { buscarCostura, buscarHistoricoCostura, buscarItensFardamento } from '@/lib/costuras'
+import { CosturaDetalhes } from '@/components/costura-detalhes'
 
-export default async function PaginaEditarCostura({
+export default async function PaginaDetalheCostura({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-
-  const [costura, fiscais, eletricistas] = await Promise.all([
-    buscarCostura(id),
-    buscarFiscais(),
-    buscarEletricistas(),
-  ])
+  const costura = await buscarCostura(id)
 
   if (!costura) {
     notFound()
   }
 
+  const [historico, itens] = await Promise.all([
+    buscarHistoricoCostura(id),
+    buscarItensFardamento(id),
+  ])
+
   return (
     <div className="max-w-xl">
-      <CosturaEditar costura={costura} fiscais={fiscais} eletricistas={eletricistas} />
+      <CosturaDetalhes costura={costura} historico={historico} itens={itens} />
     </div>
   )
 }
