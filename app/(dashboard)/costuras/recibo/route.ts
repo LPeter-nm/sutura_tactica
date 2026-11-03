@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
     valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
   // ---- Logo, na margem ESQUERDA ----
-  const larguraLogo = 60
+  const larguraLogo = 90
   const alturaLogo = (larguraLogo * 47) / 69
   doc.image(logoDplBuffer(), margemEsquerda, margemEsquerda, {
     width: larguraLogo,
