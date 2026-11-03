@@ -50,6 +50,49 @@ export async function GET(request: NextRequest) {
   }
   const linhas = data ?? []
 
+  // ---- Data em que cada costura ficou "pronto" (ou, na falta
+  // dessa etapa, "entregue") ----
+  // Uma busca só, cobrindo todas as costuras do recibo de uma vez,
+  // em vez de uma consulta por costura dentro do loop — mais rápido,
+  // e bem mais simples de ler.
+  const mapaPronto = new Map<string, string>()
+  const mapaEntregue = new Map<string, string>()
+
+  if (linhas.length > 0) {
+    const { data: historico, error: erroHistorico } = await supabase
+      .from('costuras_historico_status')
+      .select('costura_id, status_novo, alterado_em')
+      .in(
+        'costura_id',
+        linhas.map((c) => c.id)
+      )
+      .in('status_novo', ['pronto', 'entregue'])
+      .order('alterado_em', { ascending: true })
+
+    if (erroHistorico) {
+      console.error('Erro ao buscar histórico para o recibo:', erroHistorico.message)
+    }
+
+    // Como a busca já vem ordenada do mais antigo pro mais novo, o
+    // "!has(...)" garante que cada mapa guarda a PRIMEIRA vez que
+    // aquela costura entrou em cada status — não a mais recente.
+    for (const linha of historico ?? []) {
+      if (linha.status_novo === 'pronto' && !mapaPronto.has(linha.costura_id)) {
+        mapaPronto.set(linha.costura_id, linha.alterado_em)
+      }
+      if (linha.status_novo === 'entregue' && !mapaEntregue.has(linha.costura_id)) {
+        mapaEntregue.set(linha.costura_id, linha.alterado_em)
+      }
+    }
+  }
+
+  // "Pronto" tem prioridade; só usa "entregue" quando a costura
+  // nunca passou por "pronto" — exatamente o caso das costuras que
+  // pularam direto pra entregue.
+  function dataDeConclusao(costuraId: string) {
+    return mapaPronto.get(costuraId) ?? mapaEntregue.get(costuraId) ?? null
+  }
+
   const margemEsquerda = 40
   const margemInferior = 50
   const larguraTexto = 595.28 - margemEsquerda * 2 // A4 tem 595.28pt de largura
@@ -68,7 +111,7 @@ export async function GET(request: NextRequest) {
   const formatar = (valor: number) =>
     valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-  // ---- Logo, agora na margem ESQUERDA ----
+  // ---- Logo, na margem ESQUERDA ----
   const larguraLogo = 60
   const alturaLogo = (larguraLogo * 47) / 69
   doc.image(logoDplBuffer(), margemEsquerda, margemEsquerda, {
@@ -77,9 +120,6 @@ export async function GET(request: NextRequest) {
   })
 
   // ---- Título e subtítulo, alinhados à margem DIREITA ----
-  // width = larguraTexto + align: 'right' é o que faz o texto "flutuar"
-  // até a direita, mesmo o x inicial sendo a margem esquerda — o
-  // pdfkit calcula o espaço em branco necessário sozinho.
   doc
     .font('Helvetica')
     .fontSize(16)
@@ -96,9 +136,6 @@ export async function GET(request: NextRequest) {
       align: 'right',
     })
 
-  // O que vem a seguir começa abaixo do que for mais alto entre a
-  // logo e o bloco de título — evita que um dos dois invada o outro
-  // quando a logo for mais alta que duas linhas de texto, ou vice-versa.
   doc.y = Math.max(margemEsquerda + alturaLogo, doc.y) + 20
 
   // ---- Relação das costuras, em texto corrido ----
@@ -112,9 +149,7 @@ export async function GET(request: NextRequest) {
       { width: larguraTexto, align: 'justify', continued: true }
     )
     .font('Helvetica-Bold')
-    .text(
-      `${coordenador}:`
-    )
+    .text(`${coordenador}:`)
 
   let y = doc.y + 12
 
@@ -128,12 +163,11 @@ export async function GET(request: NextRequest) {
 
     const nomeLider = costura.lider ?? 'não informado'
     const matriculaTexto = costura.matricula ?? 'não informada'
+    const dataConclusao = dataDeConclusao(costura.id)
 
     // A frase mora AQUI, numa lista só — cada pedaço com seu texto
     // e se ele é negrito ou não. É essa lista que vira tanto o
     // cálculo de altura quanto o desenho de verdade, logo abaixo.
-    // Editar a frase agora é só mexer aqui, sem precisar lembrar de
-    // um segundo lugar.
     const segmentos: { texto: string; negrito?: boolean }[] = [
       { texto: `${indice + 1}. ` },
       { texto: costura.eletricista_nome, negrito: true },
@@ -142,15 +176,34 @@ export async function GET(request: NextRequest) {
       { texto: ', sob liderança de ' },
       { texto: nomeLider, negrito: true },
       { texto: ', tendo sido recebido o(s) fardamento(s): ' },
-      { texto: `${resumoFardamento(costura.itens_fardamento ?? [])}`, negrito: true },
-      {
-        texto: `, em ${formatarDataBR(
-          costura.recebido_em
-        )} e foi atribuído o valor de `,
-      },
-      { texto: `${valorTexto} `, negrito: true},
-      { texto: 'para a reparação.'}
+      { texto: resumoFardamento(costura.itens_fardamento ?? []), negrito: true },
+      { texto: ', em ' },
+      { texto: formatarDataBR(costura.recebido_em), negrito: true },
     ]
+
+    // Só entra essa cláusula se a costura realmente já tiver uma
+    // data de conclusão — uma que ainda está "em produção", por
+    // exemplo, não tem o que mostrar aqui, e a frase segue sem ela.
+    if (dataConclusao) {
+      // dataConclusao vem de "alterado_em", que é um instante real
+      // (com hora e fuso), não uma data pura como recebido_em — por
+      // isso usa new Date(...).toLocaleDateString(...), não
+      // formatarDataBR (que só sabe ler "AAAA-MM-DD" puro).
+      const dataConclusaoFormatada = new Date(dataConclusao).toLocaleDateString(
+        'pt-BR',
+        { timeZone: 'America/Fortaleza' }
+      )
+      segmentos.push(
+        { texto: ', estando concluído em ' },
+        { texto: `${dataConclusaoFormatada} `, negrito: true }
+      )
+    }
+
+    segmentos.push(
+      { texto: 'e foi atribuído o valor de ' },
+      { texto: `${valorTexto} `, negrito: true },
+      { texto: 'para a reparação.' }
+    )
 
     const textoPlano = segmentos.map((segmento) => segmento.texto).join('')
     const alturaTexto = doc.heightOfString(textoPlano, { width: larguraTexto }) + 4
@@ -222,13 +275,9 @@ export async function GET(request: NextRequest) {
       { continued: true }
     )
     .font('Helvetica-Bold')
-    .text(
-      `${coordenador}.`
-    )
+    .text(`${coordenador}.`)
 
   // ---- Assinatura, ancorada perto do rodapé da página ----
-  // Reservei mais espaço do que antes (100, não 60) porque agora o
-  // período/emitido em também moram aqui embaixo, depois da assinatura.
   const alturaAssinatura = 100
   let yAssinatura = limiteDaPagina() - alturaAssinatura
 
@@ -260,7 +309,7 @@ export async function GET(request: NextRequest) {
     align: 'center',
   })
 
-  // ---- Período e "emitido em", depois da assinatura, à direita, em negrito ----
+  // ---- Período e "emitido em", depois da assinatura ----
   let yRodape = y + 90
   doc.font('Helvetica-Bold').fontSize(9).fillColor(INK)
   if (dataDe || dataAte) {
