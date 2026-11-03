@@ -179,6 +179,17 @@ export default async function PaginaCosturas({
     return `/costuras/exportar${query ? `?${query}` : ''}`
   })()
 
+  // Só existe sentido em gerar um recibo quando dá pra saber de QUEM
+  // é o recibo — por isso ele só aparece com o filtro de coordenador
+  // ativo. O período (De/Até), se estiver preenchido, viaja junto.
+  const linkRecibo = (() => {
+    if (!filtroCoordenador) return null
+    const params = new URLSearchParams({ coordenador: filtroCoordenador })
+    if (dataDe) params.set('dataDe', dataDe)
+    if (dataAte) params.set('dataAte', dataAte)
+    return `/costuras/recibo?${params.toString()}`
+  })()
+
   // Soma em cima de TODAS as costuras que batem com o filtro — nunca
   // só as 25 da página visível. É por isso que ela usa
   // respostaResumo.data (sem paginação), não "costuras" (que é só a
@@ -212,6 +223,14 @@ export default async function PaginaCosturas({
           >
             Exportar Excel
           </a>
+          {linkRecibo && (
+            <a
+              href={linkRecibo}
+              className="rounded-md border border-border bg-card px-4 py-2 text-sm text-ink hover:bg-surface"
+            >
+              Gerar recibo
+            </a>
+          )}
           <Link
             href="/costuras/novo"
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
