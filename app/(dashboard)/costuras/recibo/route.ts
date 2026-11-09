@@ -288,7 +288,7 @@ export async function GET(request: NextRequest) {
 
   y = yAssinatura
 
-  const larguraAssinatura = 220
+  const larguraAssinatura = 240
   const xAssinatura = (doc.page.width - larguraAssinatura) / 2
 
   doc
@@ -300,13 +300,17 @@ export async function GET(request: NextRequest) {
     .font('Helvetica')
     .fontSize(10)
     .fillColor(INK)
-    .text('Assinatura do coordenador', xAssinatura, y + 4, {
+    .text('Assinatura do Fornecedor', xAssinatura, y + 4, {
       width: larguraAssinatura,
       align: 'center',
     })
-  doc.text(coordenador, xAssinatura, y + 18, {
+  doc.text('Irenilde Maria de Sousa', xAssinatura, y + 18, {
     width: larguraAssinatura,
     align: 'center',
+  })
+  doc.text('490.606.943-68', xAssinatura, y + 32, {
+    width: larguraAssinatura,
+    align: 'center'
   })
 
   // ---- Período e "emitido em", depois da assinatura ----
