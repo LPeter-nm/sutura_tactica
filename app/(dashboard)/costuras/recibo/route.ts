@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
   doc
     .fontSize(11)
     .fillColor(INK_SUAVE)
-    .text('Costuras Realizadas a Pedido do Líder ou Supervisor', margemEsquerda, doc.y, {
+    .text('Costuras Realizadas a Pedido do Líder', margemEsquerda, doc.y, {
       width: larguraTexto,
       align: 'right',
     })
