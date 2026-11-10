@@ -81,11 +81,24 @@ export function Sidebar({ admin }: { admin: boolean }) {
                     duration-200 md:static md:z-auto md:translate-x-0
                     md:transition-[width] ${
                       abertaNoCelular ? 'translate-x-0' : '-translate-x-full'
-                    } ${recolhida ? 'md:w-16' : 'md:w-56'}`}
+                    } ${recolhida ? 'md:w-20' : 'md:w-56'}`}
       >
-        <div className="flex items-center justify-between gap-2 overflow-hidden px-1">
+        {/* Sem "justify-between" aqui — o X se posiciona sozinho com
+            margem automática (abaixo), o que deixa este contêiner
+            livre pra centralizar tudo quando a barra está recolhida,
+            sem os dois disputarem o mesmo alinhamento. */}
+        <div
+          className={`flex items-center gap-2 overflow-hidden px-1 ${
+            recolhida ? 'md:justify-center' : ''
+          }`}
+        >
           <div className="flex items-center gap-2 overflow-hidden">
-            <span className="h-2 w-6 shrink-0 rounded-sm bg-primary" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/ims-costuras-logo.png"
+              alt="IMS Costuras"
+              className="h-8 w-8 shrink-0 rounded-full"
+            />
             {!recolhida && (
               <span className="whitespace-nowrap text-sm font-semibold text-ink">
                 Controle de Costuras
@@ -93,13 +106,16 @@ export function Sidebar({ admin }: { admin: boolean }) {
             )}
           </div>
 
-          {/* Fechar pelo X só faz sentido na gaveta do celular — no
-              desktop, a barra nunca "fecha", só recolhe. */}
+          {/* "ml-auto" empurra o X pra ponta direita por conta
+              própria — faz o mesmo trabalho que "justify-between"
+              fazia antes, só que sem travar o alinhamento do resto
+              da linha. Só existe na gaveta do celular; no desktop, a
+              barra nunca "fecha", só recolhe. */}
           <button
             type="button"
             onClick={() => setAbertaNoCelular(false)}
             aria-label="Fechar menu"
-            className="text-ink/50 hover:text-ink md:hidden"
+            className="ml-auto text-ink/50 hover:text-ink md:hidden"
           >
             <X size={18} />
           </button>

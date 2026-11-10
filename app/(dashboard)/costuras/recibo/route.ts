@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Costura, TipoFardamento } from '@/types/costura'
 import { formatarDataBR } from '@/lib/datas'
 import { resumoFardamento } from '@/lib/fardamento'
-import { logoDplBuffer } from '@/lib/logo-dpl'
+import { logoImsCosturasBuffer } from '@/lib/logo-ims-costuras'
 
 type CosturaComItens = Costura & {
   itens_fardamento: { tipo: TipoFardamento; quantidade: number }[]
@@ -112,9 +112,9 @@ export async function GET(request: NextRequest) {
     valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
   // ---- Logo, na margem ESQUERDA ----
-  const larguraLogo = 90
-  const alturaLogo = (larguraLogo * 47) / 69
-  doc.image(logoDplBuffer(), margemEsquerda, margemEsquerda, {
+  const larguraLogo = 60
+  const alturaLogo = (larguraLogo * 65) / 69
+  doc.image(logoImsCosturasBuffer(), margemEsquerda, margemEsquerda, {
     width: larguraLogo,
     height: alturaLogo,
   })
