@@ -101,7 +101,7 @@ export function Sidebar({ admin }: { admin: boolean }) {
             />
             {!recolhida && (
               <span className="whitespace-nowrap text-sm font-semibold text-ink">
-                Controle de Costuras
+                IMS Costuras
               </span>
             )}
           </div>
