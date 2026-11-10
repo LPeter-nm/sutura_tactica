@@ -3,7 +3,7 @@ import './globals.css'
 import { ToastProvider } from '@/components/toast-provider'
 
 export const metadata: Metadata = {
-  title: 'Controle de Costuras',
+  title: 'IMS Costuras',
   description: 'Controle de costuras de fardas de eletricistas',
 }
 
