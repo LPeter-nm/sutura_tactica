@@ -9,7 +9,7 @@ import { BotaoExcluir } from '@/components/botao-excluir'
 import { useToast } from '@/components/toast-provider'
 import { formatarDataBR } from '@/lib/datas'
 import type { Costura } from '@/types/costura'
-import { excluirCostura } from '@/app/(dashboard)/costuras/actions'
+import { excluirCostura, excluirCosturas } from '@/app/(dashboard)/costuras/actions'
 
 export function TabelaCosturas({ costuras }: { costuras: Costura[] }) {
   // O estado de seleção só pode viver aqui, num Client Component —
