@@ -2,20 +2,14 @@
 
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { Eye, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { buscarOpcoesDeFiltro } from '@/lib/costuras'
-import { StatusBadge, StatusPagamentoBadge } from '@/components/status-badge'
 import { AvisoSucesso } from '@/components/aviso-sucesso'
 import { BuscaAutomatica } from '@/components/busca-automatica'
+import { TabelaCosturas } from '@/components/tabela-costuras'
 import { STATUS_ENTREGA, STATUS_PAGAMENTO, type Costura } from '@/types/costura'
 import { POLOS, BASES, PROCESSOS_EQUIPE } from '@/lib/organizacao'
-import {
-  formatarDataBR,
-  periodoHoje,
-  periodoEstaSemana,
-  periodoEsteMes,
-} from '@/lib/datas'
+import { periodoHoje, periodoEstaSemana, periodoEsteMes } from '@/lib/datas'
 
 const MENSAGENS_SUCESSO: Record<string, string> = {
   criada: 'Costura cadastrada com sucesso.',
@@ -449,76 +443,7 @@ export default async function PaginaCosturas({
         />
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-border bg-card">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-border text-xs uppercase text-ink/50">
-            <tr>
-              <th className="px-4 py-3">Matrícula</th>
-              <th className="px-4 py-3">Eletricista</th>
-              <th className="px-4 py-3">Prefixo</th>
-              <th className="px-4 py-3">Líder</th>
-              <th className="px-4 py-3">Recebido em</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Pagamento</th>
-              <th className="px-4 py-3">Pago por</th>
-              <th className="px-4 py-3">Valor</th>
-              <th className="px-4 py-3 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {costuras?.map((costura) => (
-              <tr
-                key={costura.id}
-                className="border-b border-border last:border-0 hover:bg-surface"
-              >
-                <td className="px-4 py-3 text-ink/70">{costura.matricula ?? '—'}</td>
-                <td className="px-4 py-3 text-ink">{costura.eletricista_nome}</td>
-                <td className="px-4 py-3 text-ink/70">{costura.prefixo ?? '—'}</td>
-                <td className="px-4 py-3 text-ink/70">{costura.lider ?? '—'}</td>
-                <td className="px-4 py-3 text-ink/70">
-                  {formatarDataBR(costura.recebido_em)}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={costura.status_entrega} />
-                </td>
-                <td className="px-4 py-3">
-                  <StatusPagamentoBadge status={costura.status_pagamento} />
-                </td>
-                <td className="px-4 py-3 text-ink/70">
-                  {costura.pago_por ?? '—'}
-                </td>
-                <td className="px-4 py-3 text-ink/70">{costura.quantidade_pagamento?.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'}) ?? '—'}</td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-3">
-                    <Link
-                      href={`/costuras/${costura.id}`}
-                      aria-label="Ver detalhes"
-                      className="text-ink/50 hover:text-secondary"
-                    >
-                      <Eye size={16} />
-                    </Link>
-                    <Link
-                      href={`/costuras/${costura.id}/editar`}
-                      aria-label="Editar"
-                      className="text-ink/50 hover:text-primary"
-                    >
-                      <Pencil size={16} />
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
-
-            {costuras?.length === 0 && (
-              <tr>
-                <td colSpan={10} className="px-4 py-6 text-center text-ink/50">
-                  Nenhuma costura encontrada.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <TabelaCosturas costuras={costuras ?? []} />
 
       <div className="flex items-center justify-between text-sm text-ink/60">
         <span>

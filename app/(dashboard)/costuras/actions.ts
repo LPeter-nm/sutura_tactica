@@ -146,3 +146,33 @@ export async function atualizarCostura(id: string, valores: CosturaFormValues) {
   revalidatePath('/costuras')
   redirect('/costuras?sucesso=atualizada')
 }
+
+export async function excluirCostura(id: string) {
+  const supabase = await createClient()
+
+  // Histórico de status e itens de fardamento somem sozinhos — os
+  // dois têm "on delete cascade" apontando pra essa costura, então
+  // o Postgres cuida da limpeza por baixo dos panos.
+  const { error } = await supabase.from('costuras').delete().eq('id', id)
+
+  if (error) {
+    return { erro: 'Não foi possível excluir a costura.' }
+  }
+
+  revalidatePath('/costuras')
+}
+
+export async function excluirCosturas(ids: string[]) {
+  if (ids.length === 0) return
+
+  const supabase = await createClient()
+  // .in(...) filtra "o id está nessa lista" — apaga todas de uma
+  // vez, numa única instrução, em vez de uma chamada por costura.
+  const { error } = await supabase.from('costuras').delete().in('id', ids)
+
+  if (error) {
+    return { erro: 'Não foi possível excluir as costuras selecionadas.' }
+  }
+
+  revalidatePath('/costuras')
+}
