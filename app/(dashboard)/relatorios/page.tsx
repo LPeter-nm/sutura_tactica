@@ -52,22 +52,12 @@ export default async function PaginaRelatorios({
     <div className="space-y-6">
       <div>
         <h1 className="text-lg font-semibold text-ink">Relatórios</h1>
-        <p className="text-sm text-ink/60">
-          Clique numa barra pra filtrar os outros gráficos por ela. Clique de
-          novo pra desmarcar.
-        </p>
       </div>
 
       {/* Mesmo filtro, mesmos campos, mesmo comportamento da
           listagem de costuras — só que apontando pra /relatorios em
           vez de /costuras. */}
       <form method="get" className="flex flex-wrap items-end gap-3">
-        <CampoFiltro label="Busca">
-          <Suspense fallback={<input className={estiloFiltro} disabled />}>
-            <BuscaAutomatica valorInicial={filtros.busca} />
-          </Suspense>
-        </CampoFiltro>
-
         <CampoFiltro label="Status de entrega">
           <select
             name="status"
