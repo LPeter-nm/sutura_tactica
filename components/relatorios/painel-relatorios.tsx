@@ -210,11 +210,6 @@ export function PainelRelatorios({ dados }: { dados: LinhaRelatorio[] }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-ink/60">
-          <span className="font-semibold text-ink">{totalCosturas}</span>{' '}
-          {totalCosturas === 1 ? 'costura' : 'costuras'}{' '}
-          {temFiltro ? 'com esse filtro' : 'ao todo'}
-        </p>
         {temFiltro && (
           <button
             type="button"
