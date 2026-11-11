@@ -7,6 +7,7 @@ import { buscarOpcoesDeFiltro } from '@/lib/costuras'
 import { AvisoSucesso } from '@/components/aviso-sucesso'
 import { BuscaAutomatica } from '@/components/busca-automatica'
 import { TabelaCosturas } from '@/components/tabela-costuras'
+import { CampoFiltro, estiloFiltro } from '@/components/campo-filtro'
 import { STATUS_ENTREGA, STATUS_PAGAMENTO, type Costura } from '@/types/costura'
 import { POLOS, BASES, PROCESSOS_EQUIPE } from '@/lib/organizacao'
 import { periodoHoje, periodoEstaSemana, periodoEsteMes } from '@/lib/datas'
@@ -466,29 +467,6 @@ export default async function PaginaCosturas({
         </div>
       </div>
     </div>
-  )
-}
-
-const estiloFiltro =
-  'rounded-md border border-border bg-card px-3 py-2 text-sm text-ink'
-
-// O nome do filtro aparece em cima do campo, em vez de só dentro da
-// opção vazia do select (que ficava um "Todo líder", "Todo
-// supervisor"... repetitivo e meio estranho de ler). Cada campo via
-// CampoFiltro mostra o rótulo certo, com "Todos" sozinho dentro do
-// select.
-function CampoFiltro({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <label className="flex flex-col gap-1 text-xs text-ink/60">
-      {label}
-      {children}
-    </label>
   )
 }
 

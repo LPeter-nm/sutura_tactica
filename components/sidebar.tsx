@@ -8,13 +8,17 @@ import {
   Shirt,
   Users,
   UserCog,
+  BarChart3,
   PanelLeftClose,
   PanelLeftOpen,
   Menu,
   X,
 } from 'lucide-react'
 
-const LINKS_BASE = [{ href: '/costuras', rotulo: 'Costuras', Icone: Shirt }]
+const LINKS_BASE = [
+  { href: '/costuras', rotulo: 'Costuras', Icone: Shirt },
+  { href: '/relatorios', rotulo: 'Relatórios', Icone: BarChart3 },
+]
 
 const LINKS_ADMIN = [
   { href: '/configuracoes/fiscais', rotulo: 'Fiscais', Icone: Users },
@@ -101,7 +105,7 @@ export function Sidebar({ admin }: { admin: boolean }) {
             />
             {!recolhida && (
               <span className="whitespace-nowrap text-sm font-semibold text-ink">
-                IMS Costuras
+                IML Costuras
               </span>
             )}
           </div>

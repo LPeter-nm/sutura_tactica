@@ -409,7 +409,7 @@ export function CosturaForm({
                 onClick={() => remove(indice)}
                 disabled={fields.length === 1}
                 aria-label="Remover item"
-                className="mb-[9px] shrink-0 rounded-md border border-border p-2 text-ink/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                className="mb-2.25 shrink-0 rounded-md border border-border p-2 text-ink/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Trash2 size={16} />
               </button>
