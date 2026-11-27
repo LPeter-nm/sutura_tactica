@@ -3,6 +3,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { costuraSchema, type CosturaFormValues } from '@/lib/validations/costura'
 
@@ -175,4 +176,60 @@ export async function excluirCosturas(ids: string[]) {
   }
 
   revalidatePath('/costuras')
+}
+
+// Validação do pagamento em lote. Mesmo princípio do costuraSchema:
+// o navegador já checou, mas o servidor checa de novo, porque é ele
+// quem de fato escreve no banco.
+//  - ids: cada um precisa ser um UUID de verdade (nada de texto
+//    qualquer entrando num filtro do banco) e há um teto de 500 por
+//    vez, pra uma chamada malformada não varrer a tabela inteira.
+//  - pagoPor: nome com tamanho limitado, sem espaços sobrando.
+const pagamentoEmLoteSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(500),
+  pagoPor: z.string().trim().min(1).max(100),
+  marcarComoPago: z.boolean(),
+})
+
+// Registra, de uma vez só, quem pagou várias costuras selecionadas.
+//
+// Respeita a mesma regra de negócio das actions acima: costura SEM
+// valor a pagar (quantidade_pagamento nulo) não tem pagamento, então
+// é pulada. O filtro .not('quantidade_pagamento', 'is', null) faz
+// isso direto no banco, e o .select('id') devolve só as linhas que
+// realmente foram alteradas — a diferença pro total enviado é
+// exatamente quantas foram ignoradas.
+export async function registrarPagamentoEmLote(
+  ids: string[],
+  pagoPor: string,
+  marcarComoPago: boolean
+): Promise<{ erro: string } | { atualizadas: number; ignoradas: number }> {
+  const dados = pagamentoEmLoteSchema.safeParse({ ids, pagoPor, marcarComoPago })
+  if (!dados.success) {
+    return { erro: 'Dados inválidos. Selecione as costuras e informe o nome de quem pagou.' }
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('costuras')
+    .update({
+      pago_por: dados.data.pagoPor,
+      // Só mexe no status de pagamento se a pessoa pediu — senão o
+      // campo nem entra no update e continua como estava.
+      ...(dados.data.marcarComoPago ? { status_pagamento: 'pago' } : {}),
+    })
+    .in('id', dados.data.ids)
+    .not('quantidade_pagamento', 'is', null)
+    .select('id')
+
+  if (error) {
+    console.error('Erro ao registrar pagamento em lote:', error.message)
+    return { erro: 'Não foi possível registrar o pagamento. Tente novamente.' }
+  }
+
+  revalidatePath('/costuras')
+
+  const atualizadas = data?.length ?? 0
+  return { atualizadas, ignoradas: dados.data.ids.length - atualizadas }
 }

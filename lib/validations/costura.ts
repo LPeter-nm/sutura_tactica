@@ -31,8 +31,10 @@ export const costuraSchema = z.object({
   eletricista_nome: z.string().trim().min(1, 'Informe o nome do eletricista'),
   matricula: z.string().trim().optional(),
   prefixo: z.string().trim().optional(),
-  lider: z.string().trim().optional(),
-  supervisor: z.string().trim().optional(),
+  // Líder e supervisor agora aceitam texto livre (veja o formulário),
+  // então ganham um limite de tamanho — o mesmo do campo no navegador.
+  lider: z.string().trim().max(100, 'Use no máximo 100 caracteres').optional(),
+  supervisor: z.string().trim().max(100, 'Use no máximo 100 caracteres').optional(),
   coordenador: z.string().trim().optional(),
   polo: z.string().trim().optional(),
   base: z.string().trim().optional(),

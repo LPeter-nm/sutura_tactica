@@ -59,12 +59,13 @@ export const STATUS_PAGAMENTO: Record<
 // Um item de fardamento é uma LINHA À PARTE, ligada à costura — uma
 // costura pode ter vários (ex: "2 calças e 1 camisa"), por isso não
 // é mais um campo de texto solto na própria costura.
-export const TIPOS_FARDAMENTO = ['camisa', 'calca'] as const
+export const TIPOS_FARDAMENTO = ['camisa', 'calca', 'luva'] as const
 export type TipoFardamento = (typeof TIPOS_FARDAMENTO)[number]
 
 export const TIPO_FARDAMENTO_LABEL: Record<TipoFardamento, string> = {
   camisa: 'Camisa',
   calca: 'Calça',
+  luva: 'Luva',
 }
 
 export type ItemFardamento = {

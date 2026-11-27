@@ -9,14 +9,30 @@ import { BotaoExcluir } from '@/components/botao-excluir'
 import { useToast } from '@/components/toast-provider'
 import { formatarDataBR } from '@/lib/datas'
 import type { Costura } from '@/types/costura'
-import { excluirCostura, excluirCosturas } from '@/app/(dashboard)/costuras/actions'
+import {
+  excluirCostura,
+  excluirCosturas,
+  registrarPagamentoEmLote,
+} from '@/app/(dashboard)/costuras/actions'
 
-export function TabelaCosturas({ costuras }: { costuras: Costura[] }) {
+export function TabelaCosturas({
+  costuras,
+  pessoas,
+}: {
+  costuras: Costura[]
+  // Nomes sugeridos no campo "Pago por" (líderes, supervisores e
+  // coordenadores que já aparecem nas costuras). É só sugestão: dá
+  // pra digitar qualquer outro nome.
+  pessoas: string[]
+}) {
   // O estado de seleção só pode viver aqui, num Client Component —
   // é por isso que a tabela inteira (que antes era renderizada direto
   // pela página, do lado do servidor) virou este arquivo à parte.
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set())
   const [excluindo, iniciarExclusao] = useTransition()
+  const [registrando, iniciarRegistro] = useTransition()
+  const [pagoPor, setPagoPor] = useState('')
+  const [marcarComoPago, setMarcarComoPago] = useState(true)
   const toast = useToast()
 
   const todosMarcados =
@@ -39,6 +55,47 @@ export function TabelaCosturas({ costuras }: { costuras: Costura[] }) {
         novo.add(id)
       }
       return novo
+    })
+  }
+
+  function aoRegistrarPagamento() {
+    const nome = pagoPor.trim()
+    if (!nome) {
+      toast.mostrarErro('Informe o nome de quem pagou.')
+      return
+    }
+
+    const ids = Array.from(selecionados)
+
+    iniciarRegistro(async () => {
+      const resultado = await registrarPagamentoEmLote(ids, nome, marcarComoPago)
+
+      if ('erro' in resultado) {
+        toast.mostrarErro(resultado.erro)
+        return
+      }
+
+      if (resultado.atualizadas === 0) {
+        toast.mostrarErro(
+          'Nenhuma costura foi atualizada: as selecionadas não têm valor a pagar.'
+        )
+        return
+      }
+
+      const textoIgnoradas =
+        resultado.ignoradas > 0
+          ? ` ${resultado.ignoradas} ${
+              resultado.ignoradas === 1 ? 'foi ignorada' : 'foram ignoradas'
+            } por não ter valor a pagar.`
+          : ''
+
+      toast.mostrarSucesso(
+        `Pagamento registrado em ${resultado.atualizadas} ${
+          resultado.atualizadas === 1 ? 'costura' : 'costuras'
+        }.${textoIgnoradas}`
+      )
+      setSelecionados(new Set())
+      setPagoPor('')
     })
   }
 
@@ -72,22 +129,66 @@ export function TabelaCosturas({ costuras }: { costuras: Costura[] }) {
   return (
     <div className="space-y-3">
       {selecionados.size > 0 && (
-        <div className="flex items-center justify-between rounded-md border border-primary/30 bg-primary-light px-4 py-2">
-          <span className="text-sm text-primary-dark">
-            {selecionados.size}{' '}
-            {selecionados.size === 1
-              ? 'costura selecionada'
-              : 'costuras selecionadas'}
-          </span>
-          <button
-            type="button"
-            onClick={aoExcluirSelecionados}
-            disabled={excluindo}
-            className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60"
-          >
-            <Trash2 size={14} />
-            {excluindo ? 'Excluindo...' : 'Excluir selecionadas'}
-          </button>
+        <div className="space-y-3 rounded-md border border-primary/30 bg-primary-light px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-primary-dark">
+              {selecionados.size}{' '}
+              {selecionados.size === 1
+                ? 'costura selecionada'
+                : 'costuras selecionadas'}
+            </span>
+            <button
+              type="button"
+              onClick={aoExcluirSelecionados}
+              disabled={excluindo || registrando}
+              className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-60"
+            >
+              <Trash2 size={14} />
+              {excluindo ? 'Excluindo...' : 'Excluir selecionadas'}
+            </button>
+          </div>
+
+          {/* Registrar quem pagou: um nome só, aplicado a todas as
+              costuras marcadas de uma vez. */}
+          <div className="flex flex-wrap items-end gap-3 border-t border-primary/20 pt-3">
+            <label className="flex flex-col gap-1 text-xs text-primary-dark">
+              Pago por
+              <input
+                value={pagoPor}
+                onChange={(evento) => setPagoPor(evento.target.value)}
+                list="lista-pessoas-pagamento"
+                maxLength={100}
+                placeholder="Digite ou escolha um nome"
+                disabled={registrando}
+                className="w-64 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-ink focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
+              />
+              <datalist id="lista-pessoas-pagamento">
+                {pessoas.map((nome) => (
+                  <option key={nome} value={nome} />
+                ))}
+              </datalist>
+            </label>
+
+            <label className="flex items-center gap-2 pb-2 text-sm text-primary-dark">
+              <input
+                type="checkbox"
+                checked={marcarComoPago}
+                onChange={(evento) => setMarcarComoPago(evento.target.checked)}
+                disabled={registrando}
+                className="h-4 w-4 rounded border-border"
+              />
+              Marcar também como pago
+            </label>
+
+            <button
+              type="button"
+              onClick={aoRegistrarPagamento}
+              disabled={registrando || excluindo}
+              className="flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-sm font-medium text-white hover:bg-secondary-dark disabled:opacity-60"
+            >
+              {registrando ? 'Registrando...' : 'Registrar pagamento'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -148,7 +249,7 @@ export function TabelaCosturas({ costuras }: { costuras: Costura[] }) {
                 </td>
                 <td className="px-4 py-3 text-ink/70">{costura.pago_por ?? '—'}</td>
                 <td className="px-4 py-3 text-ink/70">
-                  {costura.quantidade_pagamento?.toLocaleString('pt-br', { style: 'currency', currency: 'BRL'}) ?? '—'}
+                  {costura.quantidade_pagamento ?? '—'}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-3">

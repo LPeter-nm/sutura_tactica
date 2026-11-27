@@ -213,25 +213,37 @@ export function CosturaForm({
         </Campo>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* Líder e supervisor são campos de texto com sugestões
+              (datalist), não mais listas fechadas: dá pra escolher
+              um nome que já existe OU digitar um nome novo/corrigido,
+              sem precisar cadastrar a pessoa antes no banco. */}
           <Campo label="Líder" erro={errors.lider?.message}>
-            <select {...register('lider')} className={estiloInput}>
-              <option value="">Selecione</option>
+            <input
+              {...register('lider')}
+              list="lista-lideres"
+              maxLength={100}
+              placeholder="Digite ou escolha"
+              className={estiloInput}
+            />
+            <datalist id="lista-lideres">
               {lideres.map((nome) => (
-                <option key={nome} value={nome}>
-                  {nome}
-                </option>
+                <option key={nome} value={nome} />
               ))}
-            </select>
+            </datalist>
           </Campo>
           <Campo label="Supervisor" erro={errors.supervisor?.message}>
-            <select {...register('supervisor')} className={estiloInput}>
-              <option value="">Selecione</option>
+            <input
+              {...register('supervisor')}
+              list="lista-supervisores"
+              maxLength={100}
+              placeholder="Digite ou escolha"
+              className={estiloInput}
+            />
+            <datalist id="lista-supervisores">
               {supervisores.map((nome) => (
-                <option key={nome} value={nome}>
-                  {nome}
-                </option>
+                <option key={nome} value={nome} />
               ))}
-            </select>
+            </datalist>
           </Campo>
           <Campo label="Coordenador" erro={errors.coordenador?.message}>
             <select {...register('coordenador')} className={estiloInput}>

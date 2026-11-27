@@ -5,6 +5,7 @@ import { TIPO_FARDAMENTO_LABEL, type ItemFardamento } from '@/types/costura'
 const PLURAL: Record<string, string> = {
   Camisa: 'camisas',
   Calça: 'calças',
+  Luva: 'luvas',
 }
 
 function formatarItem(item: Pick<ItemFardamento, 'tipo' | 'quantidade'>) {

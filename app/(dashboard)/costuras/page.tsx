@@ -444,7 +444,12 @@ export default async function PaginaCosturas({
         />
       </div>
 
-      <TabelaCosturas costuras={costuras ?? []} />
+      <TabelaCosturas
+        costuras={costuras ?? []}
+        pessoas={Array.from(new Set([...lideres, ...supervisores, ...coordenadores])).sort(
+          (a, b) => a.localeCompare(b, 'pt-BR')
+        )}
+      />
 
       <div className="flex items-center justify-between text-sm text-ink/60">
         <span>
